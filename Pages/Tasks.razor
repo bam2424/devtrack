@@ -1,0 +1,641 @@
+@page "/tasks"
+@page "/projects/{ProjectId:guid}/tasks"
+@using Microsoft.EntityFrameworkCore
+@using DevTrack.Data
+@using DevTrack.Models
+@using Microsoft.AspNetCore.Identity
+@inject DevTrackDbContext DbContext
+@inject IJSRuntime JSRuntime
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>@GetPageTitle() - DevTrack</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">@GetPageTitle()</h2>
+        <p class="text-muted">@GetPageSubtitle()</p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (ProjectId.HasValue)
+        {
+            <a href="/projects" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Projects
+            </a>
+        }
+        <button class="btn btn-primary" @onclick="ShowCreateModal">
+            <i class="fas fa-plus me-2"></i>Create Task
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select @bind="selectedStatus" @bind:after="FilterTasks" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="0">To Do</option>
+                    <option value="1">In Progress</option>
+                    <option value="2">Done</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Priority</label>
+                <select @bind="selectedPriority" @bind:after="FilterTasks" class="form-select">
+                    <option value="">All Priorities</option>
+                    <option value="0">Low</option>
+                    <option value="1">Medium</option>
+                    <option value="2">High</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input @bind="searchTerm" @bind:after="FilterTasks" class="form-control" placeholder="Search tasks..." />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button @onclick="ClearFilters" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times me-1"></i>Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (tasks == null)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (!filteredTasks.Any())
+{
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+        <h4>@(tasks.Any() ? "No tasks match your filters" : "No tasks yet")</h4>
+        <p class="text-muted">@(tasks.Any() ? "Try adjusting your search criteria" : "Create your first task to get started")</p>
+        @if (!tasks.Any())
+        {
+            <button class="btn btn-primary" @onclick="ShowCreateModal">
+                <i class="fas fa-plus me-2"></i>Create Task
+            </button>
+        }
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var task in filteredTasks)
+        {
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card task-card h-100 @GetTaskCardClass(task)">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge @GetStatusBadgeClass(task.Status)">
+                                    @GetStatusText(task.Status)
+                                </span>
+                                <span class="badge @GetPriorityBadgeClass(task.Priority)">
+                                    @GetPriorityText(task.Priority)
+                                </span>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" @onclick="() => ShowEditModal(task)" href="javascript:void(0)">
+                                        <i class="fas fa-edit me-2"></i>Edit
+                                    </a></li>
+                                    <li><a class="dropdown-item" @onclick="() => ToggleTaskCompletion(task)" href="javascript:void(0)">
+                                        <i class="fas @(task.IsCompleted ? "fa-undo" : "fa-check") me-2"></i>
+                                        @(task.IsCompleted ? "Mark Incomplete" : "Mark Complete")
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" @onclick="() => DeleteTask(task)" href="javascript:void(0)">
+                                        <i class="fas fa-trash me-2"></i>Delete
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <h5 class="card-title @(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                            @task.Title
+                        </h5>
+                        
+                        @if (!string.IsNullOrEmpty(task.Description))
+                        {
+                            <p class="card-text text-muted small">@task.Description</p>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(task.Tags))
+                        {
+                            <div class="mb-2">
+                                @foreach (var tag in task.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <span class="badge bg-secondary me-1">@tag.Trim()</span>
+                                }
+                            </div>
+                        }
+                        
+                        <div class="task-meta">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    @task.CreatedAt.ToString("MMM dd, yyyy")
+                                </small>
+                                @if (task.DueDate.HasValue)
+                                {
+                                    <small class="@GetDueDateClass(task.DueDate.Value)">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Due @task.DueDate.Value.ToString("MMM dd")
+                                    </small>
+                                }
+                            </div>
+                            
+                            @if (!ProjectId.HasValue && task.Project != null)
+                            {
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-folder me-1"></i>
+                                        <a href="/projects/@task.Project.Id/tasks" class="text-decoration-none">
+                                            @task.Project.Title
+                                        </a>
+                                    </small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Create/Edit Modal -->
+<div class="modal fade" id="taskModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@(isEditMode ? "Edit Task" : "Create Task")</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="taskForm" OnValidSubmit="SaveTask">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Title *</label>
+                                <InputText @bind-Value="taskForm.Title" class="form-control" placeholder="Enter task title" />
+                                <ValidationMessage For="@(() => taskForm.Title)" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            @if (!ProjectId.HasValue)
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label">Project</label>
+                                    <InputSelect @bind-Value="taskForm.ProjectId" class="form-select">
+                                        @if (projects != null)
+                                        {
+                                            @foreach (var project in projects)
+                                            {
+                                                <option value="@project.Id">@project.Title</option>
+                                            }
+                                        }
+                                    </InputSelect>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <InputTextArea @bind-Value="taskForm.Description" class="form-control" rows="3" placeholder="Enter task description" />
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <InputSelect @bind-Value="taskForm.Status" class="form-select" TValue="DevTrack.Models.TaskStatus">
+                                    <option value="@DevTrack.Models.TaskStatus.ToDo">To Do</option>
+                                    <option value="@DevTrack.Models.TaskStatus.InProgress">In Progress</option>
+                                    <option value="@DevTrack.Models.TaskStatus.Done">Done</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Priority</label>
+                                <InputSelect @bind-Value="taskForm.Priority" class="form-select" TValue="TaskPriority">
+                                    <option value="@TaskPriority.Low">Low</option>
+                                    <option value="@TaskPriority.Medium">Medium</option>
+                                    <option value="@TaskPriority.High">High</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Due Date</label>
+                                <InputDate @bind-Value="taskForm.DueDate" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tags</label>
+                        <InputText @bind-Value="taskForm.Tags" class="form-control" placeholder="Enter tags separated by commas" />
+                        <div class="form-text">Separate multiple tags with commas</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            @(isEditMode ? "Update" : "Create") Task
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .task-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid var(--border-color);
+    }
+    
+    .task-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .task-card.completed {
+        opacity: 0.7;
+    }
+    
+    .task-meta {
+        font-size: 0.875rem;
+    }
+    
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+    
+    .due-soon {
+        color: #f59e0b !important;
+    }
+    
+    .overdue {
+        color: #ef4444 !important;
+    }
+    
+    /* Dark theme styling */
+    .modal-content {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--bg-primary);
+    }
+    
+    .modal-title {
+        color: var(--text-primary);
+    }
+    
+    .btn-close {
+        filter: invert(1);
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bg-secondary);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        color: var(--text-primary);
+    }
+    
+    .form-control::placeholder {
+        color: var(--text-secondary);
+    }
+    
+    .form-label {
+        color: var(--text-primary);
+    }
+    
+    .form-text {
+        color: var(--text-secondary);
+    }
+    
+    .dropdown-menu {
+        --bs-dropdown-bg: var(--bg-primary);
+        --bs-dropdown-border-color: var(--border-color);
+        --bs-dropdown-link-color: var(--text-primary);
+        --bs-dropdown-link-hover-bg: var(--bg-secondary);
+    }
+</style>
+
+@code {
+    [Parameter] public Guid? ProjectId { get; set; }
+    
+    private List<DevTask>? tasks;
+    private List<DevTask> filteredTasks = new();
+    private List<Project>? projects;
+    private DevTask taskForm = new();
+    private bool isEditMode = false;
+    private string? currentUserId;
+    
+    // Filters
+    private string selectedStatus = "";
+    private string selectedPriority = "";
+    private string searchTerm = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            var user = await UserManager.GetUserAsync(authState.User);
+            currentUserId = user?.Id;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var query = DbContext.Tasks
+            .Include(t => t.Project)
+            .AsQueryable();
+            
+        if (ProjectId.HasValue)
+        {
+            query = query.Where(t => t.ProjectId == ProjectId.Value);
+        }
+        
+        tasks = await query
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+            
+        // Load projects for the dropdown if we're not in project-specific view
+        if (!ProjectId.HasValue)
+        {
+            projects = await DbContext.Projects
+                .OrderBy(p => p.Title)
+                .ToListAsync();
+        }
+        
+        FilterTasks();
+    }
+
+    private void FilterTasks()
+    {
+        if (tasks == null)
+        {
+            filteredTasks = new();
+            return;
+        }
+        
+        filteredTasks = tasks.Where(task =>
+        {
+            // Status filter
+            if (!string.IsNullOrEmpty(selectedStatus) && 
+                task.Status != (DevTrack.Models.TaskStatus)int.Parse(selectedStatus))
+                return false;
+                
+            // Priority filter
+            if (!string.IsNullOrEmpty(selectedPriority) && 
+                task.Priority != (TaskPriority)int.Parse(selectedPriority))
+                return false;
+                
+            // Search filter
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var search = searchTerm.ToLower();
+                if (!task.Title.ToLower().Contains(search) && 
+                    !task.Description?.ToLower().Contains(search) == true &&
+                    !task.Tags.ToLower().Contains(search))
+                    return false;
+            }
+            
+            return true;
+        }).ToList();
+        
+        StateHasChanged();
+    }
+
+    private void ClearFilters()
+    {
+        selectedStatus = "";
+        selectedPriority = "";
+        searchTerm = "";
+        FilterTasks();
+    }
+
+    private async Task ShowCreateModal()
+    {
+        isEditMode = false;
+        taskForm = new DevTask
+        {
+            Status = DevTrack.Models.TaskStatus.ToDo,
+            Priority = TaskPriority.Medium
+        };
+        if (ProjectId.HasValue)
+        {
+            taskForm.ProjectId = ProjectId.Value;
+        }
+        
+        // Force state update before showing modal
+        StateHasChanged();
+        await Task.Delay(50); // Small delay to ensure DOM is updated
+        
+        await JSRuntime.InvokeVoidAsync("showModal", "#taskModal");
+    }
+
+    private async Task ShowEditModal(DevTask task)
+    {
+        isEditMode = true;
+        taskForm = new DevTask
+        {
+            Id = task.Id,
+            Title = task.Title,
+            Description = task.Description,
+            Status = task.Status,
+            Priority = task.Priority,
+            DueDate = task.DueDate,
+            Tags = task.Tags,
+            ProjectId = task.ProjectId,
+            IsCompleted = task.IsCompleted
+        };
+        await JSRuntime.InvokeVoidAsync("showModal", "#taskModal");
+    }
+
+    private async Task SaveTask()
+    {
+        try
+        {
+            if (isEditMode)
+            {
+                var existingTask = await DbContext.Tasks.FindAsync(taskForm.Id);
+                if (existingTask != null)
+                {
+                    existingTask.Title = taskForm.Title;
+                    existingTask.Description = taskForm.Description;
+                    existingTask.Status = taskForm.Status;
+                    existingTask.Priority = taskForm.Priority;
+                    existingTask.DueDate = taskForm.DueDate;
+                    existingTask.Tags = taskForm.Tags ?? "";
+                    existingTask.ProjectId = taskForm.ProjectId;
+                    existingTask.UpdatedAt = DateTime.UtcNow;
+                    
+                    // Update completion status based on status
+                    existingTask.IsCompleted = taskForm.Status == DevTrack.Models.TaskStatus.Done;
+                }
+            }
+            else
+            {
+                taskForm.CreatedAt = DateTime.UtcNow;
+                taskForm.UpdatedAt = DateTime.UtcNow;
+                taskForm.IsCompleted = taskForm.Status == DevTrack.Models.TaskStatus.Done;
+                
+                // Set project if we're in project-specific view
+                if (ProjectId.HasValue && taskForm.ProjectId == Guid.Empty)
+                {
+                    taskForm.ProjectId = ProjectId.Value;
+                }
+                
+                DbContext.Tasks.Add(taskForm);
+            }
+
+            await DbContext.SaveChangesAsync();
+            await LoadData();
+            
+            await JSRuntime.InvokeVoidAsync("hideModal", "#taskModal");
+            
+            // Reset form
+            taskForm = new DevTask
+            {
+                Status = DevTrack.Models.TaskStatus.ToDo,
+                Priority = TaskPriority.Medium
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving task: {ex.Message}");
+        }
+    }
+
+    private async Task ToggleTaskCompletion(DevTask task)
+    {
+        task.IsCompleted = !task.IsCompleted;
+        task.Status = task.IsCompleted ? DevTrack.Models.TaskStatus.Done : DevTrack.Models.TaskStatus.ToDo;
+        task.UpdatedAt = DateTime.UtcNow;
+        
+        await DbContext.SaveChangesAsync();
+        await LoadData();
+    }
+
+    private async Task DeleteTask(DevTask task)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{task.Title}'?");
+        if (confirmed)
+        {
+            DbContext.Tasks.Remove(task);
+            await DbContext.SaveChangesAsync();
+            await LoadData();
+        }
+    }
+
+    // Helper methods
+    private string GetPageTitle()
+    {
+        return ProjectId.HasValue ? "Project Tasks" : "All Tasks";
+    }
+
+    private string GetPageSubtitle()
+    {
+        return ProjectId.HasValue ? "Manage tasks for this project" : "Manage all your tasks across projects";
+    }
+
+    private string GetTaskCardClass(DevTask task)
+    {
+        return task.IsCompleted ? "completed" : "";
+    }
+
+    private string GetStatusBadgeClass(DevTrack.Models.TaskStatus status)
+    {
+        return status switch
+        {
+            DevTrack.Models.TaskStatus.ToDo => "bg-secondary",
+            DevTrack.Models.TaskStatus.InProgress => "bg-warning",
+            DevTrack.Models.TaskStatus.Done => "bg-success",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusText(DevTrack.Models.TaskStatus status)
+    {
+        return status switch
+        {
+            DevTrack.Models.TaskStatus.ToDo => "To Do",
+            DevTrack.Models.TaskStatus.InProgress => "In Progress",
+            DevTrack.Models.TaskStatus.Done => "Done",
+            _ => "Unknown"
+        };
+    }
+
+    private string GetPriorityBadgeClass(TaskPriority priority)
+    {
+        return priority switch
+        {
+            TaskPriority.Low => "bg-info",
+            TaskPriority.Medium => "bg-warning text-dark",
+            TaskPriority.High => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetPriorityText(TaskPriority priority)
+    {
+        return priority switch
+        {
+            TaskPriority.Low => "Low",
+            TaskPriority.Medium => "Medium",
+            TaskPriority.High => "High",
+            _ => "Unknown"
+        };
+    }
+
+    private string GetDueDateClass(DateTime dueDate)
+    {
+        var today = DateTime.Today;
+        var days = (dueDate.Date - today).TotalDays;
+        
+        if (days < 0) return "text-danger overdue";
+        if (days <= 3) return "text-warning due-soon";
+        return "text-muted";
+    }
+} 
