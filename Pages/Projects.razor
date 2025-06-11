@@ -1,0 +1,357 @@
+@page "/projects"
+@using Microsoft.EntityFrameworkCore
+@using DevTrack.Data
+@using DevTrack.Models
+@using Microsoft.AspNetCore.Identity
+@inject DevTrackDbContext DbContext
+@inject IJSRuntime JSRuntime
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Projects - DevTrack</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Projects</h2>
+        <p class="text-muted">Manage your development projects</p>
+    </div>
+    <button class="btn btn-primary" @onclick="ShowCreateModal">
+        <i class="fas fa-plus me-2"></i>Create Project
+    </button>
+</div>
+
+@if (projects == null)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (!projects.Any())
+{
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+        <h4>No projects yet</h4>
+        <p class="text-muted">Create your first project to get started</p>
+        <button class="btn btn-primary" @onclick="ShowCreateModal">
+            <i class="fas fa-plus me-2"></i>Create Project
+        </button>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var project in projects)
+        {
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card project-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title">@project.Title</h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" @onclick="() => ShowEditModal(project)" href="javascript:void(0)">
+                                        <i class="fas fa-edit me-2"></i>Edit
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" @onclick="() => DeleteProject(project)" href="javascript:void(0)">
+                                        <i class="fas fa-trash me-2"></i>Delete
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <p class="card-text text-muted">@project.Description</p>
+                        
+                        <div class="project-meta">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Created @project.CreatedAt.ToString("MMM dd, yyyy")
+                                </small>
+                                @if (project.DueDate.HasValue)
+                                {
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Due @project.DueDate.Value.ToString("MMM dd, yyyy")
+                                    </small>
+                                }
+                            </div>
+                            
+                            <div class="progress progress-sm">
+                                <div class="progress-bar" role="progressbar" style="width: @(GetProjectProgress(project))%" 
+                                     aria-valuenow="@GetProjectProgress(project)" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted">@GetTaskCompletionText(project)</small>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/projects/@project.Id/tasks" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-tasks me-1"></i>View Tasks
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Create/Edit Modal -->
+<div class="modal fade" id="projectModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@(isEditMode ? "Edit Project" : "Create Project")</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="projectForm" OnValidSubmit="SaveProject">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <InputText @bind-Value="projectForm.Title" class="form-control" placeholder="Enter project title" />
+                        <ValidationMessage For="@(() => projectForm.Title)" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <InputTextArea @bind-Value="projectForm.Description" class="form-control" rows="3" placeholder="Enter project description" />
+                        <ValidationMessage For="@(() => projectForm.Description)" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Due Date (Optional)</label>
+                        <InputDate @bind-Value="projectForm.DueDate" class="form-control" />
+                        <ValidationMessage For="@(() => projectForm.DueDate)" />
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            @(isEditMode ? "Update" : "Create") Project
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .project-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid var(--border-color);
+    }
+    
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .progress-sm {
+        height: 6px;
+    }
+    
+    .project-meta {
+        font-size: 0.875rem;
+    }
+    
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+    
+    .dropdown-menu {
+        --bs-dropdown-bg: var(--bg-primary);
+        --bs-dropdown-border-color: var(--border-color);
+        --bs-dropdown-link-color: var(--text-primary);
+        --bs-dropdown-link-hover-bg: var(--bg-secondary);
+    }
+    
+    /* Dark theme modal styling */
+    .modal-content {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--bg-primary);
+    }
+    
+    .modal-title {
+        color: var(--text-primary);
+    }
+    
+    .btn-close {
+        filter: invert(1);
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bg-secondary);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        color: var(--text-primary);
+    }
+    
+    .form-control::placeholder {
+        color: var(--text-secondary);
+    }
+    
+    .form-label {
+        color: var(--text-primary);
+    }
+</style>
+
+@code {
+    private List<Project>? projects;
+    private Project projectForm = new();
+    private bool isEditMode = false;
+    private string? currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjects();
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            var user = await UserManager.GetUserAsync(authState.User);
+            currentUserId = user?.Id;
+        }
+    }
+
+    private async Task LoadProjects()
+    {
+        projects = await DbContext.Projects
+            .Include(p => p.Tasks)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+    }
+
+    private async Task ShowCreateModal()
+    {
+        isEditMode = false;
+        projectForm = new Project();
+        await JSRuntime.InvokeVoidAsync("showModal", "#projectModal");
+    }
+
+    private async Task ShowEditModal(Project project)
+    {
+        isEditMode = true;
+        projectForm = new Project
+        {
+            Id = project.Id,
+            Title = project.Title,
+            Description = project.Description,
+            DueDate = project.DueDate,
+            UserId = project.UserId
+        };
+        await JSRuntime.InvokeVoidAsync("showModal", "#projectModal");
+    }
+
+    private async Task SaveProject()
+    {
+        Console.WriteLine("SaveProject method called");
+        try
+        {
+            // Get current user if not already set
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                if (authState.User.Identity?.IsAuthenticated == true)
+                {
+                    var user = await UserManager.GetUserAsync(authState.User);
+                    currentUserId = user?.Id;
+                }
+            }
+            
+            // For now, use a default user ID if no authentication
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                currentUserId = "default-user";
+            }
+            
+            Console.WriteLine($"Project form - Title: {projectForm.Title}, Description: {projectForm.Description}");
+
+            if (isEditMode)
+            {
+                var existingProject = await DbContext.Projects.FindAsync(projectForm.Id);
+                if (existingProject != null)
+                {
+                    existingProject.Title = projectForm.Title;
+                    existingProject.Description = projectForm.Description;
+                    existingProject.DueDate = projectForm.DueDate;
+                    existingProject.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+            else
+            {
+                projectForm.Id = Guid.NewGuid();
+                projectForm.UserId = currentUserId;
+                projectForm.CreatedAt = DateTime.UtcNow;
+                projectForm.UpdatedAt = DateTime.UtcNow;
+                DbContext.Projects.Add(projectForm);
+            }
+
+            await DbContext.SaveChangesAsync();
+            await LoadProjects();
+            
+            await JSRuntime.InvokeVoidAsync("hideModal", "#projectModal");
+            
+            // Reset form
+            projectForm = new Project();
+        }
+        catch (Exception ex)
+        {
+            // Handle error - could add notification system later
+            Console.WriteLine($"Error saving project: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
+    }
+
+    private async Task DeleteProject(Project project)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{project.Title}'?");
+        if (confirmed)
+        {
+            DbContext.Projects.Remove(project);
+            await DbContext.SaveChangesAsync();
+            await LoadProjects();
+        }
+    }
+
+    private int GetProjectProgress(Project project)
+    {
+        if (project.Tasks == null || !project.Tasks.Any())
+            return 0;
+        
+        var completedTasks = project.Tasks.Count(t => t.IsCompleted || t.Status == DevTrack.Models.TaskStatus.Done);
+        var totalTasks = project.Tasks.Count;
+        
+        return totalTasks > 0 ? (int)Math.Round((double)completedTasks / totalTasks * 100) : 0;
+    }
+    
+    private string GetTaskCompletionText(Project project)
+    {
+        if (project.Tasks == null || !project.Tasks.Any())
+            return "No tasks yet";
+        
+        var completedTasks = project.Tasks.Count(t => t.IsCompleted || t.Status == DevTrack.Models.TaskStatus.Done);
+        var totalTasks = project.Tasks.Count;
+        var percentage = GetProjectProgress(project);
+        
+        return $"{completedTasks} of {totalTasks} tasks completed ({percentage}%)";
+    }
+} 

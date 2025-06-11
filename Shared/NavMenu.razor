@@ -1,0 +1,86 @@
+﻿<nav class="nav flex-column">
+    <div class="nav-item mb-2">
+        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="" Match="NavLinkMatch.All">
+            <i class="fas fa-tachometer-alt me-3"></i>
+            <span>Dashboard</span>
+        </NavLink>
+    </div>
+    
+    <div class="nav-item mb-2">
+        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="projects">
+            <i class="fas fa-folder me-3"></i>
+            <span>Projects</span>
+        </NavLink>
+    </div>
+    
+    <div class="nav-item mb-2">
+        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="tasks">
+            <i class="fas fa-tasks me-3"></i>
+            <span>All Tasks</span>
+        </NavLink>
+    </div>
+    
+    <div class="nav-item mb-2">
+        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="timer">
+            <i class="fas fa-clock me-3"></i>
+            <span>Time Tracking</span>
+        </NavLink>
+    </div>
+    
+    <div class="nav-item mb-2">
+        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="analytics">
+            <i class="fas fa-chart-bar me-3"></i>
+            <span>Analytics</span>
+        </NavLink>
+    </div>
+    
+    <hr class="my-3" style="border-color: var(--border-color);">
+    
+    <div class="nav-item mb-2">
+        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="settings">
+            <i class="fas fa-cog me-3"></i>
+            <span>Settings</span>
+        </NavLink>
+    </div>
+</nav>
+
+<style>
+    .nav-link {
+        color: var(--text-secondary) !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+    }
+    
+    .nav-link:hover {
+        background-color: var(--bg-secondary);
+        color: var(--accent-primary) !important;
+        transform: translateX(4px);
+    }
+    
+    .nav-link.active {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    
+    .nav-link.active:hover {
+        transform: translateX(0);
+    }
+    
+    .nav-link i {
+        width: 20px;
+        text-align: center;
+    }
+</style>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
