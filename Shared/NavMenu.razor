@@ -34,7 +34,7 @@
         </NavLink>
     </div>
     
-    <hr class="my-3" style="border-color: var(--border-color);">
+    <hr class="my-3" style="border-color: var(--border-color); opacity: 0.1;">
     
     <div class="nav-item mb-2">
         <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="settings">
@@ -46,26 +46,31 @@
 
 <style>
     .nav-link {
-        color: var(--text-secondary) !important;
+        color: #9ca3af !important;
         text-decoration: none;
         transition: all 0.3s ease;
         border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.02);
     }
     
     .nav-link:hover {
-        background-color: var(--bg-secondary);
-        color: var(--accent-primary) !important;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        color: #6366f1 !important;
         transform: translateX(4px);
     }
     
     .nav-link.active {
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        color: white !important;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        background: rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        color: #6366f1 !important;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
     }
     
     .nav-link.active:hover {
         transform: translateX(0);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
     
     .nav-link i {
