@@ -1,0 +1,460 @@
+@page "/projects/{ProjectId:guid}/kanban"
+@using Microsoft.EntityFrameworkCore
+@using DevTrack.Data
+@using DevTrack.Models
+@using Microsoft.AspNetCore.Identity
+@using TaskStatus = DevTrack.Models.TaskStatus
+@inject DevTrackDbContext DbContext
+@inject IJSRuntime JSRuntime
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Kanban Board - DevTrack</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Kanban Board</h2>
+        <p class="text-muted">Visual task management</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/projects" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
+        <button class="btn btn-primary" @onclick="ShowCreateModal">
+            <i class="fas fa-plus me-2"></i>Add Task
+        </button>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="kanban-board">
+        <div class="kanban-column">
+            <div class="kanban-header bg-secondary">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-circle me-2"></i>To Do
+                    <span class="badge bg-light text-dark ms-2">@todoTasks.Count</span>
+                </h5>
+            </div>
+            <div class="kanban-body">
+                @foreach (var task in todoTasks)
+                {
+                    <div class="kanban-card" @onclick="() => ShowEditModal(task)">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">@task.Title</h6>
+                            <span class="badge @GetPriorityBadgeClass(task.Priority)">
+                                @GetPriorityText(task.Priority)
+                            </span>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(task.Description))
+                        {
+                            <p class="card-text text-muted small mb-2">@task.Description</p>
+                        }
+                        
+                        <div class="card-footer">
+                            @if (task.DueDate.HasValue)
+                            {
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    @task.DueDate.Value.ToString("MMM dd")
+                                </small>
+                            }
+                            
+                            <div class="float-end">
+                                <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true" @onclick="() => ChangeTaskStatus(task, TaskStatus.InProgress)">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="kanban-column">
+            <div class="kanban-header bg-warning">
+                <h5 class="mb-0 text-dark">
+                    <i class="fas fa-play-circle me-2"></i>In Progress
+                    <span class="badge bg-dark text-light ms-2">@inProgressTasks.Count</span>
+                </h5>
+            </div>
+            <div class="kanban-body">
+                @foreach (var task in inProgressTasks)
+                {
+                    <div class="kanban-card" @onclick="() => ShowEditModal(task)">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">@task.Title</h6>
+                            <span class="badge @GetPriorityBadgeClass(task.Priority)">
+                                @GetPriorityText(task.Priority)
+                            </span>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(task.Description))
+                        {
+                            <p class="card-text text-muted small mb-2">@task.Description</p>
+                        }
+                        
+                        <div class="card-footer">
+                            @if (task.DueDate.HasValue)
+                            {
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    @task.DueDate.Value.ToString("MMM dd")
+                                </small>
+                            }
+                            
+                            <div class="float-end">
+                                <button class="btn btn-sm btn-outline-secondary me-1" @onclick:stopPropagation="true" @onclick="() => ChangeTaskStatus(task, TaskStatus.ToDo)">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" @onclick:stopPropagation="true" @onclick="() => ChangeTaskStatus(task, TaskStatus.Done)">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="kanban-column">
+            <div class="kanban-header bg-success">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-check-circle me-2"></i>Done
+                    <span class="badge bg-light text-dark ms-2">@doneTasks.Count</span>
+                </h5>
+            </div>
+            <div class="kanban-body">
+                @foreach (var task in doneTasks)
+                {
+                    <div class="kanban-card completed" @onclick="() => ShowEditModal(task)">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0 text-decoration-line-through">@task.Title</h6>
+                            <span class="badge @GetPriorityBadgeClass(task.Priority)">
+                                @GetPriorityText(task.Priority)
+                            </span>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(task.Description))
+                        {
+                            <p class="card-text text-muted small mb-2">@task.Description</p>
+                        }
+                        
+                        <div class="card-footer">
+                            <small class="text-success">
+                                <i class="fas fa-check me-1"></i>
+                                Completed
+                            </small>
+                            
+                            <div class="float-end">
+                                <button class="btn btn-sm btn-outline-warning" @onclick:stopPropagation="true" @onclick="() => ChangeTaskStatus(task, TaskStatus.InProgress)">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Create/Edit Modal -->
+<div class="modal fade" id="taskModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@(isEditMode ? "Edit Task" : "Create Task")</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="taskForm" OnValidSubmit="SaveTask">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Title *</label>
+                        <InputText @bind-Value="taskForm.Title" class="form-control" placeholder="Enter task title" />
+                        <ValidationMessage For="@(() => taskForm.Title)" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <InputTextArea @bind-Value="taskForm.Description" class="form-control" rows="3" placeholder="Enter task description" />
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <InputSelect @bind-Value="taskForm.Status" class="form-select">
+                                    <option value="0">To Do</option>
+                                    <option value="1">In Progress</option>
+                                    <option value="2">Done</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Priority</label>
+                                <InputSelect @bind-Value="taskForm.Priority" class="form-select">
+                                    <option value="0">Low</option>
+                                    <option value="1">Medium</option>
+                                    <option value="2">High</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Due Date</label>
+                        <InputDate @bind-Value="taskForm.DueDate" class="form-control" />
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            @(isEditMode ? "Update" : "Create") Task
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .kanban-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        min-height: 600px;
+    }
+    
+    .kanban-column {
+        background-color: var(--bg-secondary);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+    
+    .kanban-header {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .kanban-body {
+        padding: 1rem;
+        min-height: 500px;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .kanban-card {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .kanban-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent-primary);
+    }
+    
+    .kanban-card.completed {
+        opacity: 0.8;
+    }
+    
+    .kanban-card .card-footer {
+        background: none;
+        border: none;
+        padding: 0;
+        margin-top: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-content {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .btn-close {
+        filter: invert(1);
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bg-secondary);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        color: var(--text-primary);
+    }
+</style>
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    
+    private bool isLoading = true;
+    private string? currentUserId;
+    
+    private List<DevTask> tasks = new();
+    private List<DevTask> todoTasks = new();
+    private List<DevTask> inProgressTasks = new();
+    private List<DevTask> doneTasks = new();
+    
+    private DevTask taskForm = new();
+    private bool isEditMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrentUser();
+        await LoadTasks();
+        isLoading = false;
+    }
+
+    private async Task GetCurrentUser()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            var user = await UserManager.GetUserAsync(authState.User);
+            currentUserId = user?.Id ?? "default-user";
+        }
+        else
+        {
+            currentUserId = "default-user";
+        }
+    }
+
+    private async Task LoadTasks()
+    {
+        tasks = await DbContext.Tasks
+            .Where(t => t.ProjectId == ProjectId)
+            .OrderBy(t => t.CreatedAt)
+            .ToListAsync();
+            
+        GroupTasksByStatus();
+    }
+    
+    private void GroupTasksByStatus()
+    {
+        todoTasks = tasks.Where(t => t.Status == TaskStatus.ToDo).ToList();
+        inProgressTasks = tasks.Where(t => t.Status == TaskStatus.InProgress).ToList();
+        doneTasks = tasks.Where(t => t.Status == TaskStatus.Done).ToList();
+    }
+
+    private async Task ShowCreateModal()
+    {
+        isEditMode = false;
+        taskForm = new DevTask { ProjectId = ProjectId, Status = TaskStatus.ToDo };
+        await JSRuntime.InvokeVoidAsync("showModal", "#taskModal");
+    }
+
+    private async Task ShowEditModal(DevTask task)
+    {
+        isEditMode = true;
+        taskForm = new DevTask
+        {
+            Id = task.Id,
+            Title = task.Title,
+            Description = task.Description,
+            Status = task.Status,
+            Priority = task.Priority,
+            DueDate = task.DueDate,
+            ProjectId = task.ProjectId,
+            UserId = task.UserId
+        };
+        await JSRuntime.InvokeVoidAsync("showModal", "#taskModal");
+    }
+
+    private async Task SaveTask()
+    {
+        try
+        {
+            if (isEditMode)
+            {
+                var existingTask = await DbContext.Tasks.FindAsync(taskForm.Id);
+                if (existingTask != null)
+                {
+                    existingTask.Title = taskForm.Title;
+                    existingTask.Description = taskForm.Description;
+                    existingTask.Status = taskForm.Status;
+                    existingTask.Priority = taskForm.Priority;
+                    existingTask.DueDate = taskForm.DueDate;
+                    existingTask.UpdatedAt = DateTime.UtcNow;
+                    existingTask.IsCompleted = taskForm.Status == TaskStatus.Done;
+                }
+            }
+            else
+            {
+                taskForm.ProjectId = ProjectId;
+                taskForm.UserId = currentUserId ?? "default-user";
+                taskForm.CreatedAt = DateTime.UtcNow;
+                taskForm.UpdatedAt = DateTime.UtcNow;
+                taskForm.IsCompleted = taskForm.Status == TaskStatus.Done;
+                DbContext.Tasks.Add(taskForm);
+            }
+
+            await DbContext.SaveChangesAsync();
+            await LoadTasks();
+            
+            await JSRuntime.InvokeVoidAsync("hideModal", "#taskModal");
+            taskForm = new DevTask();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving task: {ex.Message}");
+        }
+    }
+    
+    private async Task ChangeTaskStatus(DevTask task, TaskStatus newStatus)
+    {
+        task.Status = newStatus;
+        task.UpdatedAt = DateTime.UtcNow;
+        task.IsCompleted = newStatus == TaskStatus.Done;
+        
+        await DbContext.SaveChangesAsync();
+        await LoadTasks();
+    }
+
+    private string GetPriorityBadgeClass(TaskPriority priority) => priority switch
+    {
+        TaskPriority.High => "bg-danger",
+        TaskPriority.Medium => "bg-warning text-dark",
+        TaskPriority.Low => "bg-secondary",
+        _ => "bg-secondary"
+    };
+
+    private string GetPriorityText(TaskPriority priority) => priority switch
+    {
+        TaskPriority.High => "High",
+        TaskPriority.Medium => "Medium",
+        TaskPriority.Low => "Low",
+        _ => "Low"
+    };
+} 

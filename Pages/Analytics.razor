@@ -1,0 +1,489 @@
+@page "/analytics"
+@using Microsoft.EntityFrameworkCore
+@using DevTrack.Data
+@using DevTrack.Models
+@using Microsoft.AspNetCore.Identity
+@using TaskStatus = DevTrack.Models.TaskStatus
+
+@inject DevTrackDbContext DbContext
+@inject IJSRuntime JSRuntime
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Analytics - DevTrack</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Analytics Dashboard</h2>
+        <p class="text-muted">Track your productivity and progress</p>
+    </div>
+    <div class="d-flex gap-2">
+        <select class="form-select w-auto" @onchange="OnPeriodChanged">
+            <option value="today" selected="@(selectedPeriod == "today")">Today</option>
+            <option value="week" selected="@(selectedPeriod == "week")">This Week</option>
+            <option value="month" selected="@(selectedPeriod == "month")">This Month</option>
+            <option value="all" selected="@(selectedPeriod == "all")">All Time</option>
+        </select>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Statistics Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card bg-primary text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-folder"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>@totalProjects</h3>
+                    <p>Total Projects</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card bg-info text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>@totalTasks</h3>
+                    <p>Total Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card bg-success text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>@completedTasks</h3>
+                    <p>Completed Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card bg-warning text-dark">
+                <div class="stats-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>@hoursLogged.ToString("F1")</h3>
+                    <p>Hours Logged</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Status Distribution -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="analytics-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Task Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress-item mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-secondary">To Do</span>
+                            <span class="fw-bold">@todoTasks</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-secondary" style="width: @GetPercentage(todoTasks, totalTasks)%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-warning">In Progress</span>
+                            <span class="fw-bold">@inProgressTasks</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" style="width: @GetPercentage(inProgressTasks, totalTasks)%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item mb-0">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-success">Done</span>
+                            <span class="fw-bold">@doneTasks</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: @GetPercentage(doneTasks, totalTasks)%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="analytics-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Priority Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress-item mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-danger">High Priority</span>
+                            <span class="fw-bold">@highPriorityTasks (@GetPercentage(highPriorityTasks, totalTasks).ToString("F1")%)</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-danger" style="width: @GetPercentage(highPriorityTasks, totalTasks)%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-warning">Medium Priority</span>
+                            <span class="fw-bold">@mediumPriorityTasks (@GetPercentage(mediumPriorityTasks, totalTasks).ToString("F1")%)</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" style="width: @GetPercentage(mediumPriorityTasks, totalTasks)%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item mb-0">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-secondary">Low Priority</span>
+                            <span class="fw-bold">@lowPriorityTasks (@GetPercentage(lowPriorityTasks, totalTasks).ToString("F1")%)</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-secondary" style="width: @GetPercentage(lowPriorityTasks, totalTasks)%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Progress -->
+    <div class="row mb-4">
+        <div class="col-12 mb-4">
+            <div class="analytics-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Project Progress</h5>
+                </div>
+                <div class="card-body">
+                    @if (projects.Any())
+                    {
+                        @foreach (var project in projects)
+                        {
+                            var projectTasks = tasks.Where(t => t.ProjectId == project.Id).ToList();
+                            var projectCompleted = projectTasks.Count(t => t.Status == TaskStatus.Done);
+                            var projectTotal = projectTasks.Count;
+                            var completionPercentage = projectTotal > 0 ? (double)projectCompleted / projectTotal * 100 : 0;
+                            
+                            <div class="project-progress-item mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h6 class="mb-0">@project.Title</h6>
+                                    <span class="text-muted">@projectCompleted/@projectTotal tasks</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: @completionPercentage.ToString("F1")%"></div>
+                                </div>
+                                <small class="text-muted">@completionPercentage.ToString("F1")% complete</small>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No projects found</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="analytics-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Time Logs</h5>
+                </div>
+                <div class="card-body">
+                    @if (filteredTimeLogs.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Task</th>
+                                        <th>Date</th>
+                                        <th>Duration</th>
+                                        <th>Total Hours</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in filteredTimeLogs.OrderByDescending(l => l.StartTime).Take(10))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">@log.Task?.Title</div>
+                                                <small class="text-muted">@log.Task?.Project?.Title</small>
+                                            </td>
+                                            <td>@log.StartTime.ToString("MMM dd, yyyy")</td>
+                                            <td>@GetDurationText(log.StartTime, log.EndTime)</td>
+                                            <td>@((double)log.DurationMinutes / 60).ToString("F2") hrs</td>
+                                            <td>@(string.IsNullOrEmpty(log.Notes) ? "-" : log.Notes)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No time logs found for selected period</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .stats-card {
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .stats-icon {
+        font-size: 2.5rem;
+        margin-right: 1rem;
+        opacity: 0.8;
+    }
+    
+    .stats-content h3 {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+        line-height: 1;
+    }
+    
+    .stats-content p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    .analytics-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .analytics-card:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .progress-item .progress {
+        height: 8px;
+        border-radius: 4px;
+        background-color: var(--bg-primary);
+    }
+    
+    .progress-bar {
+        border-radius: 4px;
+    }
+    
+    .project-progress-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .project-progress-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0 !important;
+    }
+    
+    .table {
+        color: var(--text-primary);
+    }
+    
+    .table th {
+        border-color: var(--border-color);
+        background-color: var(--bg-primary);
+        font-weight: 600;
+    }
+    
+    .table td {
+        border-color: var(--border-color);
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: var(--bg-primary);
+    }
+    
+    .form-select {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private string selectedPeriod = "week";
+    private string? currentUserId;
+    
+    // Data collections
+    private List<Project> projects = new();
+    private List<DevTask> tasks = new();
+    private List<TimeLog> timeLogs = new();
+    private List<TimeLog> filteredTimeLogs = new();
+    
+    // Statistics
+    private int totalProjects = 0;
+    private int totalTasks = 0;
+    private int completedTasks = 0;
+    private double hoursLogged = 0;
+    
+    // Task status counts
+    private int todoTasks = 0;
+    private int inProgressTasks = 0;
+    private int doneTasks = 0;
+    
+    // Priority counts
+    private int highPriorityTasks = 0;
+    private int mediumPriorityTasks = 0;
+    private int lowPriorityTasks = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrentUser();
+        await LoadData();
+        isLoading = false;
+    }
+
+    private async Task GetCurrentUser()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            var user = await UserManager.GetUserAsync(authState.User);
+            currentUserId = user?.Id ?? "default-user";
+        }
+        else
+        {
+            currentUserId = "default-user";
+        }
+    }
+
+    private async Task LoadData()
+    {
+        // Load all data for the current user
+        projects = await DbContext.Projects
+            .Where(p => p.UserId == currentUserId)
+            .ToListAsync();
+
+        tasks = await DbContext.Tasks
+            .Include(t => t.Project)
+            .Where(t => projects.Select(p => p.Id).Contains(t.ProjectId))
+            .ToListAsync();
+
+        timeLogs = await DbContext.TimeLogs
+            .Include(tl => tl.Task)
+                .ThenInclude(t => t.Project)
+            .Where(tl => tl.UserId == currentUserId)
+            .OrderByDescending(tl => tl.StartTime)
+            .ToListAsync();
+
+        CalculateStatistics();
+        FilterTimeLogsByPeriod();
+    }
+
+    private void CalculateStatistics()
+    {
+        totalProjects = projects.Count;
+        totalTasks = tasks.Count;
+        completedTasks = tasks.Count(t => t.Status == TaskStatus.Done);
+        
+        // Task status distribution
+        todoTasks = tasks.Count(t => t.Status == TaskStatus.ToDo);
+        inProgressTasks = tasks.Count(t => t.Status == TaskStatus.InProgress);
+        doneTasks = tasks.Count(t => t.Status == TaskStatus.Done);
+        
+        // Priority distribution
+        highPriorityTasks = tasks.Count(t => t.Priority == TaskPriority.High);
+        mediumPriorityTasks = tasks.Count(t => t.Priority == TaskPriority.Medium);
+        lowPriorityTasks = tasks.Count(t => t.Priority == TaskPriority.Low);
+    }
+
+    private void FilterTimeLogsByPeriod()
+    {
+        var now = DateTime.Now;
+        var startDate = selectedPeriod switch
+        {
+            "today" => now.Date,
+            "week" => now.Date.AddDays(-(int)now.DayOfWeek),
+            "month" => new DateTime(now.Year, now.Month, 1),
+            _ => DateTime.MinValue
+        };
+
+        if (selectedPeriod == "all")
+        {
+            filteredTimeLogs = timeLogs;
+        }
+        else
+        {
+            filteredTimeLogs = timeLogs.Where(tl => tl.StartTime >= startDate).ToList();
+        }
+
+        // Calculate hours logged for the period
+        hoursLogged = filteredTimeLogs.Sum(tl => (double)tl.DurationMinutes / 60);
+    }
+
+    private async Task OnPeriodChanged(ChangeEventArgs e)
+    {
+        selectedPeriod = e.Value?.ToString() ?? "week";
+        FilterTimeLogsByPeriod();
+        StateHasChanged();
+    }
+
+    private double GetPercentage(int value, int total)
+    {
+        return total > 0 ? (double)value / total * 100 : 0;
+    }
+
+    private string GetDurationText(DateTime startTime, DateTime? endTime)
+    {
+        if (!endTime.HasValue)
+            return "In progress";
+            
+        var duration = endTime.Value - startTime;
+        if (duration.TotalDays >= 1)
+            return $"{duration.Days}d {duration.Hours}h {duration.Minutes}m";
+        else if (duration.TotalHours >= 1)
+            return $"{duration.Hours}h {duration.Minutes}m";
+        else
+            return $"{duration.Minutes}m";
+    }
+}

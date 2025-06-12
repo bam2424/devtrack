@@ -1,0 +1,832 @@
+@page "/timer"
+@using Microsoft.EntityFrameworkCore
+@using DevTrack.Data
+@using DevTrack.Models
+@using Microsoft.AspNetCore.Identity
+@using TaskStatus = DevTrack.Models.TaskStatus
+@inject DevTrackDbContext DbContext
+@inject IJSRuntime JSRuntime
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IDisposable
+
+<PageTitle>Timer - DevTrack</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Time Tracking</h2>
+        <p class="text-muted">Track time spent on your tasks</p>
+    </div>
+    <div class="d-flex gap-2">
+        <select class="form-select w-auto" @onchange="OnPeriodChanged">
+            <option value="today" selected="@(selectedPeriod == "today")">Today</option>
+            <option value="week" selected="@(selectedPeriod == "week")">This Week</option>
+            <option value="month" selected="@(selectedPeriod == "month")">This Month</option>
+            <option value="all" selected="@(selectedPeriod == "all")">All Time</option>
+        </select>
+        <button class="btn btn-primary" @onclick="ShowManualLogModal">
+            <i class="fas fa-plus me-2"></i>Log Time
+        </button>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Active Timer Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="timer-card @(activeTimer != null ? "active" : "")">
+                <div class="timer-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-stopwatch me-2"></i>Active Timer
+                    </h5>
+                </div>
+                <div class="timer-body">
+                    @if (activeTimer != null)
+                    {
+                        <div class="active-timer">
+                            <div class="timer-display">
+                                <h1 class="timer-time">@GetElapsedTime()</h1>
+                                <p class="timer-task">@activeTimer.Task?.Title</p>
+                                <small class="text-muted">Started @activeTimer.StartTime.ToString("HH:mm")</small>
+                            </div>
+                            <div class="timer-controls">
+                                <button class="btn btn-danger btn-lg" @onclick="StopTimer">
+                                    <i class="fas fa-stop me-2"></i>Stop Timer
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="inactive-timer text-center">
+                            <i class="fas fa-play-circle fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-3">No active timer</p>
+                            <button class="btn btn-success btn-lg" @onclick="ShowStartTimerModal">
+                                <i class="fas fa-play me-2"></i>Start Timer
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Start Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="quick-start-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Start Timer</h5>
+                </div>
+                <div class="card-body">
+                    @if (recentTasks.Any())
+                    {
+                        <div class="row">
+                            @foreach (var task in recentTasks.Take(4))
+                            {
+                                <div class="col-md-3 col-sm-6 mb-3">
+                                    <div class="task-quick-card" @onclick="() => StartQuickTimer(task)">
+                                        <div class="task-title">@task.Title</div>
+                                        <div class="task-project">@task.Project?.Title</div>
+                                        <div class="task-priority">
+                                            <span class="badge @GetPriorityBadgeClass(task.Priority)">
+                                                @GetPriorityText(task.Priority)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No recent incomplete tasks found</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card bg-primary text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>@totalHours.ToString("F1")</h3>
+                    <p>Total Hours</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card bg-info text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>@sessionCount</h3>
+                    <p>Sessions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card bg-success text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>@(sessionCount > 0 ? (totalHours / sessionCount).ToString("F1") : "0.0")</h3>
+                    <p>Avg per Session</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card bg-warning text-dark">
+                <div class="stats-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stats-content">
+                    <h3>@(GetDaysWithLogs() > 0 ? (totalHours / GetDaysWithLogs()).ToString("F1") : "0.0")</h3>
+                    <p>Avg per Day</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Logs History -->
+    <div class="row">
+        <div class="col-12">
+            <div class="time-logs-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Time Logs History</h5>
+                </div>
+                <div class="card-body">
+                    @if (filteredTimeLogs.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Task</th>
+                                        <th>Project</th>
+                                        <th>Start Time</th>
+                                        <th>End Time</th>
+                                        <th>Duration</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in filteredTimeLogs.OrderByDescending(l => l.StartTime))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">@log.Task?.Title</div>
+                                                <small class="text-muted">ID: @log.Task?.Id</small>
+                                            </td>
+                                            <td>@log.Task?.Project?.Title</td>
+                                            <td>@log.StartTime.ToString("MMM dd, HH:mm")</td>
+                                            <td>@(log.EndTime?.ToString("MMM dd, HH:mm") ?? "In progress")</td>
+                                            <td>@GetDurationText(log)</td>
+                                            <td>@(string.IsNullOrEmpty(log.Notes) ? "-" : log.Notes)</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowEditLogModal(log)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTimeLog(log)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No time logs found for selected period</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Start Timer Modal -->
+<div class="modal fade" id="startTimerModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Start Timer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Select Task</label>
+                    <select @bind="selectedTaskId" class="form-select">
+                        <option value="">Select a task...</option>
+                        @foreach (var task in availableTasks)
+                        {
+                            <option value="@task.Id">@task.Title (@task.Project?.Title)</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" @onclick="StartTimer">Start Timer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Log Modal -->
+<div class="modal fade" id="manualLogModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@(isEditingLog ? "Edit Time Log" : "Log Time Manually")</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="timeLogForm" OnValidSubmit="SaveTimeLog">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Task *</label>
+                                <select @bind="timeLogForm.TaskId" class="form-select">
+                                    <option value="">Select a task...</option>
+                                    @foreach (var task in availableTasks)
+                                    {
+                                        <option value="@task.Id">@task.Title (@task.Project?.Title)</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Duration (minutes) *</label>
+                                <input type="number" @bind="timeLogForm.DurationMinutes" class="form-control" min="1" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" @bind="logDate" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Start Time</label>
+                                <input type="time" @bind="logTime" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea @bind="timeLogForm.Notes" class="form-control" rows="3" placeholder="Optional notes about this time log"></textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            @(isEditingLog ? "Update" : "Save") Time Log
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timer-card {
+        background-color: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .timer-card.active {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+    
+    .timer-header {
+        background-color: var(--bg-primary);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .timer-body {
+        padding: 2rem 1.5rem;
+    }
+    
+    .active-timer {
+        text-align: center;
+    }
+    
+    .timer-time {
+        font-size: 4rem;
+        font-weight: bold;
+        color: var(--accent-primary);
+        margin: 0;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .timer-task {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin: 0.5rem 0;
+        color: var(--text-primary);
+    }
+    
+    .timer-controls {
+        margin-top: 2rem;
+    }
+    
+    .inactive-timer {
+        padding: 2rem 0;
+    }
+    
+    .quick-start-card, .time-logs-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .task-quick-card {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+    
+    .task-quick-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent-primary);
+    }
+    
+    .task-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+    
+    .task-project {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.75rem;
+    }
+    
+    .stats-card {
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .stats-icon {
+        font-size: 2.5rem;
+        margin-right: 1rem;
+        opacity: 0.8;
+    }
+    
+    .stats-content h3 {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+        line-height: 1;
+    }
+    
+    .stats-content p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    .table {
+        color: var(--text-primary);
+    }
+    
+    .table th {
+        border-color: var(--border-color);
+        background-color: var(--bg-primary);
+        font-weight: 600;
+    }
+    
+    .table td {
+        border-color: var(--border-color);
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: var(--bg-primary);
+    }
+    
+    /* Modal styling */
+    .modal-content {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .btn-close {
+        filter: invert(1);
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bg-secondary);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        color: var(--text-primary);
+    }
+    
+    .form-select {
+        width: auto;
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private string selectedPeriod = "week";
+    private string? currentUserId;
+    
+    // Timer state
+    private TimeLog? activeTimer;
+    private System.Timers.Timer? uiTimer;
+    
+    // Data collections
+    private List<DevTask> availableTasks = new();
+    private List<DevTask> recentTasks = new();
+    private List<TimeLog> timeLogs = new();
+    private List<TimeLog> filteredTimeLogs = new();
+    
+    // Form data
+    private int selectedTaskId = 0;
+    private TimeLog timeLogForm = new();
+    private bool isEditingLog = false;
+    private DateTime logDate = DateTime.Today;
+    private TimeOnly? logTime = TimeOnly.FromDateTime(DateTime.Now);
+    
+    // Statistics
+    private double totalHours = 0;
+    private int sessionCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrentUser();
+        await LoadData();
+        SetupTimer();
+        isLoading = false;
+    }
+    
+    private void SetupTimer()
+    {
+        uiTimer = new System.Timers.Timer(1000); // Update every second
+        uiTimer.Elapsed += async (sender, e) => 
+        {
+            await InvokeAsync(StateHasChanged);
+        };
+        uiTimer.Start();
+    }
+
+    private async Task GetCurrentUser()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            var user = await UserManager.GetUserAsync(authState.User);
+            currentUserId = user?.Id ?? "default-user";
+        }
+        else
+        {
+            currentUserId = "default-user";
+        }
+    }
+
+    private async Task LoadData()
+    {
+        // Load available tasks
+        availableTasks = await DbContext.Tasks
+            .Include(t => t.Project)
+            .Where(t => t.Status != TaskStatus.Done)
+            .OrderByDescending(t => t.UpdatedAt)
+            .ToListAsync();
+            
+        // Load recent incomplete tasks
+        recentTasks = availableTasks.Take(10).ToList();
+
+        // Load time logs
+        timeLogs = await DbContext.TimeLogs
+            .Include(tl => tl.Task)
+                .ThenInclude(t => t.Project)
+            .Where(tl => tl.UserId == currentUserId)
+            .OrderByDescending(tl => tl.StartTime)
+            .ToListAsync();
+
+        // Check for active timer
+        activeTimer = timeLogs.FirstOrDefault(tl => tl.IsRunning);
+
+        FilterTimeLogsByPeriod();
+        CalculateStatistics();
+    }
+
+    private void FilterTimeLogsByPeriod()
+    {
+        var now = DateTime.Now;
+        var startDate = selectedPeriod switch
+        {
+            "today" => now.Date,
+            "week" => now.Date.AddDays(-(int)now.DayOfWeek),
+            "month" => new DateTime(now.Year, now.Month, 1),
+            _ => DateTime.MinValue
+        };
+
+        if (selectedPeriod == "all")
+        {
+            filteredTimeLogs = timeLogs;
+        }
+        else
+        {
+            filteredTimeLogs = timeLogs.Where(tl => tl.StartTime >= startDate).ToList();
+        }
+    }
+
+    private void CalculateStatistics()
+    {
+        sessionCount = filteredTimeLogs.Count;
+        totalHours = filteredTimeLogs.Sum(tl => (double)tl.DurationMinutes / 60);
+    }
+
+    private async Task OnPeriodChanged(ChangeEventArgs e)
+    {
+        selectedPeriod = e.Value?.ToString() ?? "week";
+        FilterTimeLogsByPeriod();
+        CalculateStatistics();
+        StateHasChanged();
+    }
+
+    private async Task ShowStartTimerModal()
+    {
+        await JSRuntime.InvokeVoidAsync("showModal", "#startTimerModal");
+    }
+
+    private async Task StartTimer()
+    {
+        if (selectedTaskId <= 0) return;
+
+        try
+        {
+            var task = await DbContext.Tasks.FindAsync(selectedTaskId);
+            if (task == null) return;
+
+            var timeLog = new TimeLog
+            {
+                TaskId = selectedTaskId,
+                UserId = currentUserId ?? "default-user",
+                StartTime = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            DbContext.TimeLogs.Add(timeLog);
+            await DbContext.SaveChangesAsync();
+
+            activeTimer = timeLog;
+            await JSRuntime.InvokeVoidAsync("hideModal", "#startTimerModal");
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting timer: {ex.Message}");
+        }
+    }
+
+    private async Task StartQuickTimer(DevTask task)
+    {
+        if (activeTimer != null) return;
+
+        try
+        {
+            var timeLog = new TimeLog
+            {
+                TaskId = task.Id,
+                UserId = currentUserId ?? "default-user",
+                StartTime = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            DbContext.TimeLogs.Add(timeLog);
+            await DbContext.SaveChangesAsync();
+
+            activeTimer = timeLog;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting quick timer: {ex.Message}");
+        }
+    }
+
+    private async Task StopTimer()
+    {
+        if (activeTimer == null) return;
+
+        try
+        {
+            var endTime = DateTime.UtcNow;
+            activeTimer.EndTime = endTime;
+            activeTimer.DurationMinutes = (int)(endTime - activeTimer.StartTime).TotalMinutes;
+
+            await DbContext.SaveChangesAsync();
+            activeTimer = null;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error stopping timer: {ex.Message}");
+        }
+    }
+
+    private async Task ShowManualLogModal()
+    {
+        isEditingLog = false;
+        timeLogForm = new TimeLog();
+        logDate = DateTime.Today;
+        logTime = TimeOnly.FromDateTime(DateTime.Now);
+        await JSRuntime.InvokeVoidAsync("showModal", "#manualLogModal");
+    }
+
+    private async Task ShowEditLogModal(TimeLog log)
+    {
+        isEditingLog = true;
+        timeLogForm = new TimeLog
+        {
+            Id = log.Id,
+            TaskId = log.TaskId,
+            DurationMinutes = log.DurationMinutes,
+            Notes = log.Notes,
+            UserId = log.UserId
+        };
+        logDate = log.StartTime.Date;
+        logTime = TimeOnly.FromDateTime(log.StartTime);
+        await JSRuntime.InvokeVoidAsync("showModal", "#manualLogModal");
+    }
+
+    private async Task SaveTimeLog()
+    {
+        try
+        {
+            var startDateTime = logDate.Add(logTime?.ToTimeSpan() ?? TimeSpan.Zero);
+
+            if (isEditingLog)
+            {
+                var existingLog = await DbContext.TimeLogs.FindAsync(timeLogForm.Id);
+                if (existingLog != null)
+                {
+                    existingLog.TaskId = timeLogForm.TaskId;
+                    existingLog.StartTime = startDateTime;
+                    existingLog.EndTime = startDateTime.AddMinutes(timeLogForm.DurationMinutes);
+                    existingLog.DurationMinutes = timeLogForm.DurationMinutes;
+                    existingLog.Notes = timeLogForm.Notes;
+                }
+            }
+            else
+            {
+                var newLog = new TimeLog
+                {
+                    TaskId = timeLogForm.TaskId,
+                    UserId = currentUserId ?? "default-user",
+                    StartTime = startDateTime,
+                    EndTime = startDateTime.AddMinutes(timeLogForm.DurationMinutes),
+                    DurationMinutes = timeLogForm.DurationMinutes,
+                    Notes = timeLogForm.Notes,
+                    CreatedAt = DateTime.UtcNow
+                };
+                DbContext.TimeLogs.Add(newLog);
+            }
+
+            await DbContext.SaveChangesAsync();
+            await LoadData();
+            await JSRuntime.InvokeVoidAsync("hideModal", "#manualLogModal");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving time log: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteTimeLog(TimeLog log)
+    {
+        try
+        {
+            DbContext.TimeLogs.Remove(log);
+            await DbContext.SaveChangesAsync();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting time log: {ex.Message}");
+        }
+    }
+
+    private string GetElapsedTime()
+    {
+        if (activeTimer == null) return "00:00:00";
+        
+        var elapsed = DateTime.UtcNow - activeTimer.StartTime;
+        return $"{(int)elapsed.TotalHours:D2}:{elapsed.Minutes:D2}:{elapsed.Seconds:D2}";
+    }
+
+    private string GetDurationText(TimeLog log)
+    {
+        if (log.EndTime == null) return "In progress";
+        
+        var minutes = log.DurationMinutes;
+        var hours = minutes / 60;
+        var remainingMinutes = minutes % 60;
+        
+        if (hours > 0)
+            return $"{hours}h {remainingMinutes}m";
+        else
+            return $"{remainingMinutes}m";
+    }
+
+    private int GetDaysWithLogs()
+    {
+        return filteredTimeLogs.Select(tl => tl.StartTime.Date).Distinct().Count();
+    }
+
+    private string GetPriorityBadgeClass(TaskPriority priority) => priority switch
+    {
+        TaskPriority.High => "bg-danger",
+        TaskPriority.Medium => "bg-warning text-dark",
+        TaskPriority.Low => "bg-secondary",
+        _ => "bg-secondary"
+    };
+
+    private string GetPriorityText(TaskPriority priority) => priority switch
+    {
+        TaskPriority.High => "High",
+        TaskPriority.Medium => "Medium",
+        TaskPriority.Low => "Low",
+        _ => "Low"
+    };
+
+    public void Dispose()
+    {
+        uiTimer?.Stop();
+        uiTimer?.Dispose();
+    }
+}

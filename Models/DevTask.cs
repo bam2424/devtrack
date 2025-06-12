@@ -26,6 +26,9 @@ public class DevTask
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
+    // User who owns this task
+    public string UserId { get; set; } = string.Empty;
+    
     // Foreign key
     public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;

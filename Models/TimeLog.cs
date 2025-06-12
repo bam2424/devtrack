@@ -26,4 +26,9 @@ public class TimeLog
     
     // Helper property to check if timer is running
     public bool IsRunning => EndTime == null;
+    
+    // Helper properties for backward compatibility
+    public DateTime Date => StartTime.Date;
+    public double Hours => DurationMinutes / 60.0;
+    public string Description => Notes ?? "";
 } 

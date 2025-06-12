@@ -1,0 +1,401 @@
+@page "/settings"
+@using Microsoft.AspNetCore.Identity
+@inject IJSRuntime JSRuntime
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Settings - DevTrack</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Settings</h2>
+        <p class="text-muted">Customize your DevTrack experience</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 col-md-10">
+        <!-- Theme Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-palette me-2"></i>Appearance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Theme</label>
+                            <div class="d-flex gap-2 mt-2">
+                                <button class="btn theme-btn @(currentTheme == "light" ? "active" : "")" 
+                                        @onclick='() => SetTheme("light")'>
+                                    <i class="fas fa-sun me-2"></i>Light
+                                </button>
+                                <button class="btn theme-btn @(currentTheme == "dark" ? "active" : "")" 
+                                        @onclick='() => SetTheme("dark")'>
+                                    <i class="fas fa-moon me-2"></i>Dark
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="theme-preview">
+                            <div class="preview-card">
+                                <div class="preview-header"></div>
+                                <div class="preview-body">
+                                    <div class="preview-line"></div>
+                                    <div class="preview-line short"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Profile
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (currentUser != null)
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" value="@currentUser.Email" readonly />
+                                <div class="form-text">Email cannot be changed</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" value="@currentUser.UserName" readonly />
+                                <div class="form-text">Username cannot be changed</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="/Identity/Account/Manage" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Manage Account
+                        </a>
+                        <a href="/Identity/Account/Manage/ChangePassword" class="btn btn-outline-secondary">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-user-slash fa-2x mb-2"></i>
+                        <p>Not logged in</p>
+                        <a href="/Identity/Account/Login" class="btn btn-primary">Sign In</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Application Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>Preferences
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Default Task View</label>
+                            <select @bind="defaultTaskView" @bind:after="SavePreferences" class="form-select">
+                                <option value="kanban">Kanban Board</option>
+                                <option value="list">List View</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Items per Page</label>
+                            <select @bind="itemsPerPage" @bind:after="SavePreferences" class="form-select">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" @bind="autoStartTimer" @bind:after="SavePreferences" id="autoStartTimer">
+                            <label class="form-check-label" for="autoStartTimer">
+                                Auto-start timer when task moves to "In Progress"
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" @bind="showCompletedTasks" @bind:after="SavePreferences" id="showCompletedTasks">
+                            <label class="form-check-label" for="showCompletedTasks">
+                                Show completed tasks by default
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-database me-2"></i>Data Management
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Export Data</h6>
+                        <p class="text-muted small">Download your data for backup purposes</p>
+                        <button class="btn btn-outline-primary" @onclick="ExportData" disabled>
+                            <i class="fas fa-download me-2"></i>Export Data
+                        </button>
+                        <div class="form-text">Coming soon</div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Clear Data</h6>
+                        <p class="text-muted small">Remove all your projects and tasks</p>
+                        <button class="btn btn-outline-danger" @onclick="ClearAllData">
+                            <i class="fas fa-trash me-2"></i>Clear All Data
+                        </button>
+                        <div class="form-text">This action cannot be undone</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>About DevTrack
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Version:</strong> 1.0.0 MVP</p>
+                        <p><strong>Technology:</strong> Blazor Server (.NET 8)</p>
+                        <p><strong>Database:</strong> SQLite</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Features:</strong></p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Project Management</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Kanban Board</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Time Tracking</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Analytics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .theme-btn {
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+    }
+    
+    .theme-btn:hover {
+        border-color: var(--accent-primary);
+        color: var(--accent-primary);
+    }
+    
+    .theme-btn.active {
+        border-color: var(--accent-primary);
+        background-color: var(--accent-primary);
+        color: white;
+    }
+    
+    .theme-preview {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+    }
+    
+    .preview-card {
+        width: 80px;
+        height: 60px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        overflow: hidden;
+        background-color: var(--bg-primary);
+    }
+    
+    .preview-header {
+        height: 15px;
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .preview-body {
+        padding: 6px;
+    }
+    
+    .preview-line {
+        height: 3px;
+        background-color: var(--text-secondary);
+        margin-bottom: 3px;
+        border-radius: 2px;
+    }
+    
+    .preview-line.short {
+        width: 60%;
+    }
+    
+    /* Dark theme styling */
+    .card {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+    }
+    
+    .card-header {
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bg-secondary);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        color: var(--text-primary);
+    }
+    
+    .form-control[readonly] {
+        background-color: var(--bg-tertiary);
+        opacity: 0.7;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--accent-primary);
+        border-color: var(--accent-primary);
+    }
+    
+    .form-text {
+        color: var(--text-secondary);
+    }
+</style>
+
+@code {
+    private IdentityUser? currentUser;
+    private string currentTheme = "dark";
+    private string defaultTaskView = "kanban";
+    private string itemsPerPage = "25";
+    private bool autoStartTimer = false;
+    private bool showCompletedTasks = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCurrentUser();
+        await LoadUserPreferences();
+    }
+
+    private async Task LoadCurrentUser()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            currentUser = await UserManager.GetUserAsync(authState.User);
+        }
+    }
+
+    private async Task LoadUserPreferences()
+    {
+        try
+        {
+            // Load theme from localStorage
+            currentTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "theme") ?? "dark";
+            
+            // Load other preferences from localStorage
+            defaultTaskView = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "defaultTaskView") ?? "kanban";
+            itemsPerPage = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "itemsPerPage") ?? "25";
+            
+            var autoStartString = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "autoStartTimer");
+            autoStartTimer = bool.TryParse(autoStartString, out var autoStart) && autoStart;
+            
+            var showCompletedString = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "showCompletedTasks");
+            showCompletedTasks = !bool.TryParse(showCompletedString, out var showCompleted) || showCompleted; // Default to true
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading preferences: {ex.Message}");
+        }
+    }
+
+    private async Task SetTheme(string theme)
+    {
+        currentTheme = theme;
+        await JSRuntime.InvokeVoidAsync("setTheme", theme);
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "theme", theme);
+        StateHasChanged();
+    }
+
+    private async Task SavePreferences()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "defaultTaskView", defaultTaskView);
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "itemsPerPage", itemsPerPage);
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "autoStartTimer", autoStartTimer.ToString());
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "showCompletedTasks", showCompletedTasks.ToString());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving preferences: {ex.Message}");
+        }
+    }
+
+    private async Task ExportData()
+    {
+        // TODO: Implement data export functionality
+        await JSRuntime.InvokeVoidAsync("alert", "Export functionality coming soon!");
+    }
+
+    private async Task ClearAllData()
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to clear ALL your data? This will delete all projects, tasks, and time logs. This action cannot be undone.");
+        
+        if (confirmed)
+        {
+            var doubleConfirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+                "This is your final warning. All your data will be permanently deleted. Are you absolutely sure?");
+            
+            if (doubleConfirmed)
+            {
+                // TODO: Implement data clearing functionality
+                await JSRuntime.InvokeVoidAsync("alert", "Data clearing functionality will be implemented in a future update.");
+            }
+        }
+    }
+} 

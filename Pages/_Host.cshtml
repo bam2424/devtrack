@@ -49,6 +49,16 @@
                 modal.hide();
             }
         };
+        
+        window.setTheme = (theme) => {
+            document.body.setAttribute('data-theme', theme);
+        };
+        
+        // Initialize theme from localStorage on page load
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+        })();
     </script>
 </body>
 </html>
