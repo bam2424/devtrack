@@ -1,19 +1,15 @@
 ﻿@inherits LayoutComponentBase
-@inject IJSRuntime JSRuntime
 
 <PageTitle>DevTrack</PageTitle>
 
 <div class="d-flex vh-100">
     <!-- Sidebar -->
-    <nav class="d-flex flex-column" style="width: 280px; min-height: 100vh; background-color: #1f2937; border-right: 1px solid rgba(255, 255, 255, 0.1);">
-        <div class="p-4" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-            <div class="d-flex align-items-center justify-content-between">
-                <h4 class="mb-0 fw-bold" style="color: #6366f1;">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="d-flex align-items-center">
+                <h4 class="mb-0 fw-bold text-accent">
                     <i class="fas fa-code me-2"></i>DevTrack
                 </h4>
-                <button class="theme-toggle" @onclick="ToggleTheme" title="Toggle theme">
-                    <i class="fas @(_isDarkTheme ? "fa-sun" : "fa-moon")"></i>
-                </button>
             </div>
         </div>
         
@@ -21,8 +17,8 @@
             <NavMenu />
         </div>
         
-        <div class="p-3" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
-            <div class="d-flex align-items-center" style="color: #9ca3af;">
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center text-muted">
                 <i class="fas fa-user-circle me-2"></i>
                 <small>Welcome back!</small>
             </div>
@@ -30,7 +26,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="flex-grow-1 d-flex flex-column" style="background-color: #111827;">
+    <main class="main-content">
         <!-- Page Content -->
         <div class="flex-grow-1 p-4" style="overflow-y: auto;">
             <div class="container-fluid">
@@ -39,32 +35,3 @@
         </div>
     </main>
 </div>
-
-@code {
-    private bool _isDarkTheme = true;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            var theme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "theme");
-            _isDarkTheme = theme == "dark" || string.IsNullOrEmpty(theme);
-            await SetTheme(_isDarkTheme);
-            StateHasChanged();
-        }
-    }
-
-    private async Task ToggleTheme()
-    {
-        _isDarkTheme = !_isDarkTheme;
-        await SetTheme(_isDarkTheme);
-        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "theme", _isDarkTheme ? "dark" : "light");
-    }
-
-    private async Task SetTheme(bool isDark)
-    {
-        await JSRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", isDark ? "dark" : "light");
-    }
-
-
-}

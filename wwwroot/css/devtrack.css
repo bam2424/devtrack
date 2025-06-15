@@ -1,27 +1,122 @@
-/* DevTrack Custom Styles - Modern Dark Theme - Updated Icons */
+/* DevTrack Custom Styles - Dark Theme Only */
 
-:root {
-    /* Light mode colors */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --bg-card: #ffffff;
-    --text-primary: #212529;
-    --text-secondary: #6c757d;
-    --text-muted: #adb5bd;
-    --border-color: #dee2e6;
-    --accent-primary: #6366f1;
-    --accent-secondary: #8b5cf6;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --shadow: rgba(0, 0, 0, 0.1);
+/* NUCLEAR OPTION - HIGHEST SPECIFICITY OVERRIDES */
+html body div.d-flex.vh-100 nav.sidebar,
+html body div nav.sidebar,
+html body nav.sidebar,
+body div.d-flex.vh-100 nav.sidebar,
+body div nav.sidebar,
+body nav.sidebar,
+div.d-flex.vh-100 nav.sidebar,
+div nav.sidebar,
+nav.sidebar {
+    background: #1e293b !important;
+    background-image: none !important;
+    background-color: #1e293b !important;
 }
 
-[data-theme="dark"] {
-    /* Dark mode colors */
+/* Target any possible navigation element with gradient */
+html body nav,
+body nav,
+nav {
+    background-image: none !important;
+}
+
+/* Specifically target the MainLayout sidebar */
+html body div.d-flex nav,
+body div.d-flex nav,
+div.d-flex nav {
+    background: #1e293b !important;
+    background-image: none !important;
+    background-color: #1e293b !important;
+}
+
+/* FORCE OVERRIDE BLAZOR ERROR BOUNDARIES - HIGHEST SPECIFICITY */
+html body .blazor-error-boundary,
+html body div.blazor-error-boundary,
+body .blazor-error-boundary,
+.blazor-error-boundary {
+    background: #334155 !important;
+    background-image: none !important;
+    background-color: #334155 !important;
+    border: 1px solid #ef4444 !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    color: #f1f5f9 !important;
+    margin: 1rem 0 !important;
+    box-shadow: none !important;
+}
+
+html body .blazor-error-boundary::after,
+html body div.blazor-error-boundary::after,
+body .blazor-error-boundary::after,
+.blazor-error-boundary::after {
+    content: "An error has occurred." !important;
+    color: #ef4444 !important;
+    font-weight: 600 !important;
+    background: none !important;
+    background-image: none !important;
+}
+
+html body .blazor-error-boundary::before,
+html body div.blazor-error-boundary::before,
+body .blazor-error-boundary::before,
+.blazor-error-boundary::before {
+    display: none !important;
+    content: none !important;
+    background: none !important;
+    background-image: none !important;
+}
+
+/* FORCE OVERRIDE SIDEBAR GRADIENT - Target the specific sidebar */
+nav.sidebar,
+.sidebar,
+nav[class*="sidebar"],
+div[class*="sidebar"] {
+    background-color: #1e293b !important;
+    background-image: none !important;
+    background: #1e293b !important;
+}
+
+/* Override any scoped CSS that might be adding gradients to navigation */
+nav {
+    background-image: none !important;
+}
+
+nav.sidebar {
+    background: #1e293b !important;
+    background-image: none !important;
+    background-color: #1e293b !important;
+}
+
+/* Target any element that might have the rainbow gradient specifically */
+*[style*="linear-gradient(180deg, rgb(5, 39, 103)"],
+*[style*="linear-gradient(180deg,rgb(5,39,103)"],
+div[style*="background-image: linear-gradient"] {
+    background: #1e293b !important;
+    background-image: none !important;
+}
+
+/* Override any default app styling */
+#app {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    min-height: 100vh;
+}
+
+/* Ensure main app container uses our theme */
+.app {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    min-height: 100vh;
+}
+
+:root {
+    /* Dark mode colors only */
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
     --bg-card: #334155;
+    --bg-tertiary: #475569;
     --text-primary: #f1f5f9;
     --text-secondary: #cbd5e1;
     --text-muted: #94a3b8;
@@ -34,21 +129,64 @@
     --shadow: rgba(0, 0, 0, 0.3);
 }
 
-/* Base styles */
+/* Base styles - force override everything */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
 body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
+    padding: 0;
+}
+
+/* Override any Bootstrap or default component backgrounds */
+.container, .container-fluid {
+    background-color: transparent !important;
+}
+
+.row {
+    background-color: transparent !important;
+}
+
+.col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, 
+.col-7, .col-8, .col-9, .col-10, .col-11, .col-12,
+.col-sm, .col-md, .col-lg, .col-xl, .col-xxl {
+    background-color: transparent !important;
+}
+
+/* Override Bootstrap defaults */
+.text-dark {
+    color: var(--text-primary) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.bg-white {
+    background-color: var(--bg-card) !important;
+}
+
+.bg-light {
+    background-color: var(--bg-secondary) !important;
 }
 
 /* Card components */
 .card {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px var(--shadow);
-    transition: all 0.3s ease;
+    color: var(--text-primary) !important;
+    overflow: hidden; /* Ensures child elements don't extend beyond border radius */
 }
 
 .card:hover {
@@ -57,13 +195,34 @@ body {
 }
 
 .card-header {
-    background-color: transparent;
-    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
     padding: 1.5rem;
+    color: var(--text-primary) !important;
+    border-top-left-radius: 11px; /* Slightly less than card to account for border */
+    border-top-right-radius: 11px;
 }
 
 .card-body {
     padding: 1.5rem;
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+.card-footer {
+    background-color: var(--bg-secondary) !important;
+    border-top: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    border-bottom-left-radius: 11px;
+    border-bottom-right-radius: 11px;
+}
+
+.card-title {
+    color: var(--text-primary) !important;
+}
+
+.card-text {
+    color: var(--text-secondary) !important;
 }
 
 /* Navigation */
@@ -96,8 +255,9 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%) !important;
+    color: white !important;
+    border: none !important;
 }
 
 .btn-primary:hover {
@@ -106,67 +266,97 @@ body {
 }
 
 .btn-outline-primary {
-    border: 2px solid var(--accent-primary);
-    color: var(--accent-primary);
-    background: transparent;
+    border: 2px solid var(--accent-primary) !important;
+    color: var(--accent-primary) !important;
+    background: transparent !important;
 }
 
 .btn-outline-primary:hover {
-    background: var(--accent-primary);
-    color: white;
+    background: var(--accent-primary) !important;
+    color: white !important;
     transform: translateY(-1px);
 }
 
+.btn-secondary {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
 .btn-success {
-    background: var(--success);
-    color: white;
+    background: var(--success) !important;
+    color: white !important;
 }
 
 .btn-warning {
-    background: var(--warning);
-    color: white;
+    background: var(--warning) !important;
+    color: white !important;
 }
 
 .btn-danger {
-    background: var(--danger);
-    color: white;
+    background: var(--danger) !important;
+    color: white !important;
 }
 
 /* Forms */
 .form-control, .form-select {
-    background-color: var(--bg-primary);
-    border: 2px solid var(--border-color);
-    color: var(--text-primary);
+    background-color: var(--bg-secondary) !important;
+    border: 2px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
     border-radius: 8px;
-    transition: all 0.3s ease;
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
 }
 
 .form-control::placeholder {
-    color: var(--text-muted);
+    color: var(--text-muted) !important;
 }
 
 .form-label {
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     font-weight: 500;
     margin-bottom: 0.5rem;
 }
 
+.form-text {
+    color: var(--text-secondary) !important;
+}
+
+.form-check-input {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.form-check-input:checked {
+    background-color: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+}
+
+.form-check-label {
+    color: var(--text-primary) !important;
+}
+
 /* Task Cards */
 .task-card {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 0.75rem;
     transition: all 0.3s ease;
     cursor: pointer;
+    color: var(--text-primary) !important;
+    overflow: hidden; /* Ensures child elements don't extend beyond border radius */
 }
 
 .task-card:hover {
@@ -176,19 +366,25 @@ body {
 
 .task-priority-high {
     border-left: 4px solid var(--danger);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
 }
 
 .task-priority-medium {
     border-left: 4px solid var(--warning);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
 }
 
 .task-priority-low {
     border-left: 4px solid var(--success);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
 }
 
 /* Kanban Columns */
 .kanban-column {
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-secondary) !important;
     border-radius: 12px;
     padding: 1rem;
     min-height: 500px;
@@ -197,7 +393,7 @@ body {
 
 .kanban-header {
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--border-color);
@@ -221,25 +417,164 @@ body {
     cursor: pointer;
 }
 
-/* Theme Toggle */
-.theme-toggle {
-    background: var(--bg-card);
-    border: 2px solid var(--border-color);
-    border-radius: 50px;
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
+/* Modal overrides */
+.modal-content {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
 }
 
-.theme-toggle:hover {
+.modal-header {
+    background-color: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-title {
+    color: var(--text-primary) !important;
+}
+
+.modal-body {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-footer {
+    background-color: var(--bg-card) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+.btn-close {
+    filter: invert(1);
+}
+
+/* Dropdown overrides */
+.dropdown-menu {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.dropdown-item {
+    color: var(--text-primary) !important;
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Text color overrides */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary) !important;
+}
+
+p {
+    color: var(--text-primary) !important;
+}
+
+small {
+    color: var(--text-secondary) !important;
+}
+
+/* Progress bars - ensure they respect card boundaries */
+.progress {
+    background-color: var(--bg-secondary) !important;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background-color: var(--accent-primary) !important;
+    border-radius: 6px;
+}
+
+/* Sidebar styling to match modern card design */
+.sidebar {
+    width: 280px;
+    min-height: 100vh;
+    background-color: #1e293b !important;
+    border-right: 1px solid var(--border-color);
+    box-shadow: 4px 0 6px -1px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 10;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: #0f172a;
+    border-top-right-radius: 0;
+}
+
+.sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: #0f172a;
+    margin-top: auto;
+}
+
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-primary);
+    min-height: 100vh;
+}
+
+.text-accent {
+    color: var(--accent-primary) !important;
+}
+
+/* Navigation menu styling */
+.nav-menu {
+    padding: 0;
+}
+
+.nav-menu .nav-item {
+    margin-bottom: 0.5rem;
+}
+
+.nav-menu .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    color: var(--text-secondary) !important;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+
+.nav-menu .nav-link:hover {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color);
+    transform: translateX(2px);
+}
+
+.nav-menu .nav-link.active {
+    background-color: var(--accent-primary) !important;
+    color: white !important;
     border-color: var(--accent-primary);
-    background: var(--accent-primary);
-    color: white;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.nav-menu .nav-link i {
+    width: 20px;
+    margin-right: 0.75rem;
+    text-align: center;
+}
+
+/* Navigation divider */
+.nav-divider {
+    border: none;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 1rem 0;
+    opacity: 0.5;
 }
 
 /* Responsive Design */
@@ -250,6 +585,24 @@ body {
     
     .kanban-column {
         margin-bottom: 1rem;
+    }
+    
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: fixed;
+        top: 0;
+        left: -100%;
+        z-index: 1000;
+        transition: left 0.3s ease;
+    }
+    
+    .sidebar.show {
+        left: 0;
+    }
+    
+    .main-content {
+        margin-left: 0;
     }
 }
 

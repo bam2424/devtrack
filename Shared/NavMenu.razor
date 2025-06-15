@@ -1,83 +1,48 @@
-﻿<nav class="nav flex-column">
-    <div class="nav-item mb-2">
-        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="" Match="NavLinkMatch.All">
-            <i class="fas fa-tachometer-alt me-3"></i>
+﻿<nav class="nav-menu">
+    <div class="nav-item">
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <i class="fas fa-tachometer-alt"></i>
             <span>Dashboard</span>
         </NavLink>
     </div>
     
-    <div class="nav-item mb-2">
-        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="projects">
-            <i class="fas fa-folder me-3"></i>
+    <div class="nav-item">
+        <NavLink class="nav-link" href="projects">
+            <i class="fas fa-folder"></i>
             <span>Projects</span>
         </NavLink>
     </div>
     
-    <div class="nav-item mb-2">
-        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="tasks">
-            <i class="fas fa-tasks me-3"></i>
+    <div class="nav-item">
+        <NavLink class="nav-link" href="tasks">
+            <i class="fas fa-tasks"></i>
             <span>Tasks</span>
         </NavLink>
     </div>
     
-    <div class="nav-item mb-2">
-        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="timer">
-            <i class="fas fa-clock me-3"></i>
+    <div class="nav-item">
+        <NavLink class="nav-link" href="timer">
+            <i class="fas fa-clock"></i>
             <span>Time Tracking</span>
         </NavLink>
     </div>
     
-    <div class="nav-item mb-2">
-        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="analytics">
-            <i class="fas fa-chart-bar me-3"></i>
+    <div class="nav-item">
+        <NavLink class="nav-link" href="analytics">
+            <i class="fas fa-chart-bar"></i>
             <span>Analytics</span>
         </NavLink>
     </div>
     
-    <hr class="my-3" style="border-color: var(--border-color); opacity: 0.1;">
+    <hr class="nav-divider">
     
-    <div class="nav-item mb-2">
-        <NavLink class="nav-link d-flex align-items-center py-2 px-3 rounded" href="settings">
-            <i class="fas fa-cog me-3"></i>
+    <div class="nav-item">
+        <NavLink class="nav-link" href="settings">
+            <i class="fas fa-cog"></i>
             <span>Settings</span>
         </NavLink>
     </div>
 </nav>
-
-<style>
-    .nav-link {
-        color: #9ca3af !important;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        background: rgba(255, 255, 255, 0.02);
-    }
-    
-    .nav-link:hover {
-        background: rgba(99, 102, 241, 0.1);
-        border: 1px solid rgba(99, 102, 241, 0.2);
-        color: #6366f1 !important;
-        transform: translateX(4px);
-    }
-    
-    .nav-link.active {
-        background: rgba(99, 102, 241, 0.15);
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        color: #6366f1 !important;
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
-    }
-    
-    .nav-link.active:hover {
-        transform: translateX(0);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-    
-    .nav-link i {
-        width: 20px;
-        text-align: center;
-    }
-</style>
 
 @code {
     private bool collapseNavMenu = true;

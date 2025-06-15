@@ -21,7 +21,7 @@
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
     <title>DevTrack - Modern Project Management</title>
 </head>
-<body data-theme="dark">
+<body>
     <component type="typeof(App)" render-mode="ServerPrerendered" />
 
     <div id="blazor-error-ui">
@@ -49,16 +49,6 @@
                 modal.hide();
             }
         };
-        
-        window.setTheme = (theme) => {
-            document.body.setAttribute('data-theme', theme);
-        };
-        
-        // Initialize theme from localStorage on page load
-        (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.body.setAttribute('data-theme', savedTheme);
-        })();
     </script>
 </body>
 </html>
