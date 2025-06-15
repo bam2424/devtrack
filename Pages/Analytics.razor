@@ -38,8 +38,8 @@
 else
 {
     <!-- Statistics Overview -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
+    <div class="row mb-4 row-equal-height">
+        <div class="col-md-3 col-sm-6 mb-3 d-flex">
             <div class="stats-card stats-card-primary text-white">
                 <div class="stats-icon">
                     <i class="fas fa-folder"></i>
@@ -50,7 +50,7 @@ else
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-3 col-sm-6 mb-3 d-flex">
             <div class="stats-card stats-card-info text-white">
                 <div class="stats-icon">
                     <i class="fas fa-tasks"></i>
@@ -61,7 +61,7 @@ else
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-3 col-sm-6 mb-3 d-flex">
             <div class="stats-card stats-card-success text-white">
                 <div class="stats-icon">
                     <i class="fas fa-check-circle"></i>
@@ -72,7 +72,7 @@ else
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-3 col-sm-6 mb-3 d-flex">
             <div class="stats-card stats-card-warning text-white">
                 <div class="stats-icon">
                     <i class="fas fa-clock"></i>
@@ -86,8 +86,8 @@ else
     </div>
 
     <!-- Task Status Distribution -->
-    <div class="row mb-4">
-        <div class="col-lg-6 mb-4">
+    <div class="row mb-4 row-equal-height">
+        <div class="col-lg-6 mb-4 d-flex">
             <div class="analytics-card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Task Status Distribution</h5>
@@ -124,7 +124,7 @@ else
             </div>
         </div>
         
-        <div class="col-lg-6 mb-4">
+        <div class="col-lg-6 mb-4 d-flex">
             <div class="analytics-card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Priority Breakdown</h5>
@@ -231,7 +231,7 @@ else
                                             </td>
                                             <td>@log.StartTime.ToString("MMM dd, yyyy")</td>
                                             <td>@GetDurationText(log.StartTime, log.EndTime)</td>
-                                            <td>@((double)log.DurationMinutes / 60).ToString("F2") hrs</td>
+                                            <td>@(((double)log.DurationMinutes / 60).ToString("F2")) hrs</td>
                                             <td>@(string.IsNullOrEmpty(log.Notes) ? "-" : log.Notes)</td>
                                         </tr>
                                     }
@@ -257,6 +257,9 @@ else
         align-items: center;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         transition: transform 0.2s ease;
+        height: 100%;
+        min-height: 120px;
+        overflow: hidden;
     }
     
     .stats-card:hover {
@@ -288,6 +291,10 @@ else
         border-radius: 12px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         transition: box-shadow 0.2s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
     
     .analytics-card:hover {
@@ -298,20 +305,27 @@ else
         background-color: transparent;
         border-bottom: 1px solid var(--border-color);
         padding: 1.25rem 1.5rem;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
     }
     
     .card-body {
         padding: 1.5rem;
+        flex-grow: 1;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
     }
     
     .progress-item .progress {
         height: 8px;
         border-radius: 4px;
         background-color: var(--bg-primary);
+        overflow: hidden;
     }
     
     .progress-bar {
         border-radius: 4px;
+        overflow: hidden;
     }
     
     .project-progress-item {
@@ -342,10 +356,25 @@ else
         background-color: var(--bg-primary);
     }
     
+    .table-responsive {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
     .form-select {
         background-color: var(--bg-secondary);
         border: 1px solid var(--border-color);
         color: var(--text-primary);
+    }
+    
+    .row-equal-height {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .row-equal-height > [class*="col-"] {
+        display: flex;
+        flex-direction: column;
     }
 </style>
 

@@ -34,34 +34,81 @@
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">Status</label>
-                <select @bind="selectedStatus" @bind:after="FilterTasks" class="form-select">
-                    <option value="">All Statuses</option>
-                    <option value="0">To Do</option>
-                    <option value="1">In Progress</option>
-                    <option value="2">Done</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Priority</label>
-                <select @bind="selectedPriority" @bind:after="FilterTasks" class="form-select">
-                    <option value="">All Priorities</option>
-                    <option value="0">Low</option>
-                    <option value="1">Medium</option>
-                    <option value="2">High</option>
-                </select>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Search</label>
-                <input @bind="searchTerm" @bind:after="FilterTasks" class="form-control" placeholder="Search tasks..." />
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">&nbsp;</label>
-                <button @onclick="ClearFilters" class="btn btn-outline-secondary w-100">
-                    <i class="fas fa-times me-1"></i>Clear
-                </button>
-            </div>
+            @if (!ProjectId.HasValue)
+            {
+                <div class="col-md-2">
+                    <label class="form-label">Project</label>
+                    <select @bind="selectedProject" @bind:after="FilterTasks" class="form-select">
+                        <option value="">All Projects</option>
+                        @if (projects != null)
+                        {
+                            @foreach (var project in projects)
+                            {
+                                <option value="@project.Id">@project.Title</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select @bind="selectedStatus" @bind:after="FilterTasks" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="0">To Do</option>
+                        <option value="1">In Progress</option>
+                        <option value="2">Done</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Priority</label>
+                    <select @bind="selectedPriority" @bind:after="FilterTasks" class="form-select">
+                        <option value="">All Priorities</option>
+                        <option value="0">Low</option>
+                        <option value="1">Medium</option>
+                        <option value="2">High</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input @bind="searchTerm" @bind:after="FilterTasks" class="form-control" placeholder="Search tasks..." />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button @onclick="ClearFilters" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select @bind="selectedStatus" @bind:after="FilterTasks" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="0">To Do</option>
+                        <option value="1">In Progress</option>
+                        <option value="2">Done</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Priority</label>
+                    <select @bind="selectedPriority" @bind:after="FilterTasks" class="form-select">
+                        <option value="">All Priorities</option>
+                        <option value="0">Low</option>
+                        <option value="1">Medium</option>
+                        <option value="2">High</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input @bind="searchTerm" @bind:after="FilterTasks" class="form-control" placeholder="Search tasks..." />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button @onclick="ClearFilters" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </button>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -366,6 +413,7 @@ else
     // Filters
     private string selectedStatus = "";
     private string selectedPriority = "";
+    private string selectedProject = "";
     private string searchTerm = "";
 
     protected override async Task OnInitializedAsync()
@@ -421,6 +469,11 @@ else
         
         filteredTasks = tasks.Where(task =>
         {
+            // Project filter (only applies when not in project-specific view)
+            if (!ProjectId.HasValue && !string.IsNullOrEmpty(selectedProject) && 
+                task.ProjectId != Guid.Parse(selectedProject))
+                return false;
+                
             // Status filter
             if (!string.IsNullOrEmpty(selectedStatus) && 
                 task.Status != (DevTrack.Models.TaskStatus)int.Parse(selectedStatus))
@@ -451,6 +504,7 @@ else
     {
         selectedStatus = "";
         selectedPriority = "";
+        selectedProject = "";
         searchTerm = "";
         FilterTasks();
     }
