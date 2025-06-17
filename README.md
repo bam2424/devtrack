@@ -188,17 +188,6 @@ The Google OAuth integration provides users with a convenient single sign-on exp
 - User data isolation ensures secure multi-user experience
 - Session management follows ASP.NET Core Identity best practices
 
-## 🤝 Contributing
-
-1. **Fork** the repository
-2. **Create** feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to branch (`git push origin feature/amazing-feature`)
-5. **Open** Pull Request
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## 👨‍💻 Author
 
@@ -213,18 +202,3 @@ This project is licensed under the **MIT License** - see the [LICENSE.md](LICENS
 - Icons powered by [Font Awesome](https://fontawesome.com/)
 - Typography using [Inter Font](https://rsms.me/inter/)
 - Inspired by modern project management solutions
-
----
-
-## 🎯 Perfect for Portfolio Demonstrations
-
-**DevTrack showcases modern full-stack development skills:**
-
-✨ **Latest .NET Technologies** - .NET 8, Blazor Server, EF Core 8  
-🏗️ **Clean Architecture** - Component-based design with separation of concerns  
-🎨 **Modern UI/UX** - Premium dark theme with responsive design  
-🔐 **Security Best Practices** - ASP.NET Core Identity with proper authorization  
-📊 **Real-World Features** - Time tracking, analytics, and project management  
-🚀 **Production Ready** - Error handling, validation, and performance optimization  
-
-*Built to demonstrate expertise in Microsoft's latest web development technologies and modern software engineering practices.*
