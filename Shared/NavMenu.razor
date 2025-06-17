@@ -1,4 +1,8 @@
-﻿<nav class="nav-menu">
+﻿@using Microsoft.AspNetCore.Identity
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<IdentityUser> UserManager
+
+<nav class="nav-menu">
     <div class="nav-item">
         <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
             <i class="fas fa-tachometer-alt"></i>
@@ -36,12 +40,15 @@
     
     <hr class="nav-divider">
     
-    <div class="nav-item">
-        <NavLink class="nav-link" href="google-logins">
-            <i class="fas fa-google text-danger"></i>
-            <span>Google Logins</span>
-        </NavLink>
-    </div>
+    @if (isAdmin)
+    {
+        <div class="nav-item">
+            <NavLink class="nav-link" href="google-logins">
+                <i class="fas fa-google text-danger"></i>
+                <span>Google Logins</span>
+            </NavLink>
+        </div>
+    }
     
     <div class="nav-item">
         <NavLink class="nav-link" href="settings">
@@ -53,8 +60,33 @@
 
 @code {
     private bool collapseNavMenu = true;
+    private bool isAdmin = false;
+    private const string ADMIN_EMAIL = "wildicehole@gmail.com";
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAdminStatus();
+    }
+
+    private async Task CheckAdminStatus()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                var user = await UserManager.GetUserAsync(authState.User);
+                isAdmin = user?.Email?.ToLower() == ADMIN_EMAIL.ToLower();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error checking admin status: {ex.Message}");
+            isAdmin = false;
+        }
+    }
 
     private void ToggleNavMenu()
     {
