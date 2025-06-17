@@ -1,0 +1,10 @@
+[build]
+nixpacksVersion = "v1.10.0"
+
+[build.env]
+DOTNET_VERSION = "8.0"
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "never" 
