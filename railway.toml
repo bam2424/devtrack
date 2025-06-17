@@ -1,5 +1,4 @@
 [build]
-nixpacksVersion = "v1.10.0"
 
 [build.env]
 DOTNET_VERSION = "8.0"
