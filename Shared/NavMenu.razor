@@ -1,6 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <nav class="nav-menu">
     <div class="nav-item">
@@ -56,6 +58,18 @@
             <span>Settings</span>
         </NavLink>
     </div>
+    
+    <AuthorizeView>
+        <Authorized>
+            <hr class="nav-divider">
+            <div class="nav-item">
+                <button class="nav-link nav-logout-btn" @onclick="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 </nav>
 
 @code {
@@ -91,5 +105,10 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task Logout()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('form[action=\"/Identity/Account/Logout\"]').submit()");
     }
 }

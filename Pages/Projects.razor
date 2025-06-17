@@ -229,13 +229,22 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadProjects();
-        
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             var user = await UserManager.GetUserAsync(authState.User);
             currentUserId = user?.Id;
+        }
+        
+        await LoadProjects();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadProjects();
+            StateHasChanged();
         }
     }
 
