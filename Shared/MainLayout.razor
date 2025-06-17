@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Antiforgery
+@inherits LayoutComponentBase
+@inject IAntiforgery Antiforgery
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>DevTrack</PageTitle>
 
@@ -37,6 +40,27 @@
 </div>
 
 <!-- Hidden logout form for JavaScript submission -->
-<form action="/Identity/Account/Logout" method="post" style="display: none;">
+<form id="logoutForm" action="/Identity/Account/Logout" method="post" style="display: none;">
     <input type="hidden" name="ReturnUrl" value="/" />
+    <input name="__RequestVerificationToken" type="hidden" value="@GetAntiForgeryToken()" />
 </form>
+
+@code {
+    private string GetAntiForgeryToken()
+    {
+        try
+        {
+            var httpContext = HttpContextAccessor.HttpContext;
+            if (httpContext != null)
+            {
+                var tokens = Antiforgery.GetAndStoreTokens(httpContext);
+                return tokens.RequestToken ?? "";
+            }
+        }
+        catch
+        {
+            // Fallback
+        }
+        return "";
+    }
+}

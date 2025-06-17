@@ -109,6 +109,6 @@
 
     private async Task Logout()
     {
-        await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('form[action=\"/Identity/Account/Logout\"]').submit()");
+        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('logoutForm').submit()");
     }
 }
