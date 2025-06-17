@@ -354,7 +354,7 @@ else
     private async Task LoadTasks()
     {
         tasks = await DbContext.Tasks
-            .Where(t => t.ProjectId == ProjectId)
+            .Where(t => t.ProjectId == ProjectId && t.UserId == currentUserId)
             .OrderBy(t => t.CreatedAt)
             .ToListAsync();
             

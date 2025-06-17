@@ -435,7 +435,7 @@ else
 
         tasks = await DbContext.Tasks
             .Include(t => t.Project)
-            .Where(t => projects.Select(p => p.Id).Contains(t.ProjectId))
+            .Where(t => t.UserId == currentUserId && projects.Select(p => p.Id).Contains(t.ProjectId))
             .ToListAsync();
 
         timeLogs = await DbContext.TimeLogs

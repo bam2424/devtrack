@@ -586,10 +586,10 @@ else
 
     private async Task LoadData()
     {
-        // Load available tasks
+        // Load available tasks for current user
         availableTasks = await DbContext.Tasks
             .Include(t => t.Project)
-            .Where(t => t.Status != TaskStatus.Done)
+            .Where(t => t.Status != TaskStatus.Done && t.UserId == currentUserId)
             .OrderByDescending(t => t.UpdatedAt)
             .ToListAsync();
             

@@ -418,14 +418,18 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
-        
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             var user = await UserManager.GetUserAsync(authState.User);
             currentUserId = user?.Id;
         }
+        else
+        {
+            currentUserId = "default-user";
+        }
+        
+        await LoadData();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -435,28 +439,48 @@ else
 
     private async Task LoadData()
     {
-        var query = DbContext.Tasks
-            .Include(t => t.Project)
-            .AsQueryable();
-            
-        if (ProjectId.HasValue)
+        try
         {
-            query = query.Where(t => t.ProjectId == ProjectId.Value);
-        }
-        
-        tasks = await query
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync();
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                var query = DbContext.Tasks
+                    .Include(t => t.Project)
+                    .Where(t => t.UserId == currentUserId)
+                    .AsQueryable();
+                    
+                if (ProjectId.HasValue)
+                {
+                    query = query.Where(t => t.ProjectId == ProjectId.Value);
+                }
+                
+                tasks = await query
+                    .OrderByDescending(t => t.CreatedAt)
+                    .ToListAsync();
+                    
+                // Load projects for the dropdown if we're not in project-specific view
+                // Also filter projects by current user
+                if (!ProjectId.HasValue)
+                {
+                    projects = await DbContext.Projects
+                        .Where(p => p.UserId == currentUserId)
+                        .OrderBy(p => p.Title)
+                        .ToListAsync();
+                }
+            }
+            else
+            {
+                tasks = new List<DevTask>();
+                projects = new List<Project>();
+            }
             
-        // Load projects for the dropdown if we're not in project-specific view
-        if (!ProjectId.HasValue)
-        {
-            projects = await DbContext.Projects
-                .OrderBy(p => p.Title)
-                .ToListAsync();
+            FilterTasks();
         }
-        
-        FilterTasks();
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading tasks: {ex.Message}");
+            tasks = new List<DevTask>();
+            projects = new List<Project>();
+        }
     }
 
     private void FilterTasks()
@@ -574,6 +598,7 @@ else
                 taskForm.CreatedAt = DateTime.UtcNow;
                 taskForm.UpdatedAt = DateTime.UtcNow;
                 taskForm.IsCompleted = taskForm.Status == DevTrack.Models.TaskStatus.Done;
+                taskForm.UserId = currentUserId ?? "default-user";
                 
                 // Set project if we're in project-specific view
                 if (ProjectId.HasValue && taskForm.ProjectId == Guid.Empty)
