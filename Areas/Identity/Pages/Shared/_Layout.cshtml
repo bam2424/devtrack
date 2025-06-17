@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DevTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/devtrack.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <div class="auth-layout">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="text-center mb-4">
+                    <h2 class="text-white">
+                        <i class="fas fa-code me-2"></i>DevTrack
+                    </h2>
+                </div>
+                
+                <main role="main">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+<style>
+    .auth-layout {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    
+    .auth-container {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .auth-card {
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .auth-card .form-control {
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        color: #e2e8f0;
+    }
+    
+    .auth-card .form-control:focus {
+        background: rgba(15, 23, 42, 0.7);
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25);
+        color: #e2e8f0;
+    }
+    
+    .auth-card .btn-primary {
+        background: #3b82f6;
+        border-color: #3b82f6;
+    }
+    
+    .auth-card .btn-primary:hover {
+        background: #2563eb;
+        border-color: #2563eb;
+    }
+    
+    .auth-card .text-muted {
+        color: #94a3b8 !important;
+    }
+    
+    .auth-card a {
+        color: #60a5fa;
+    }
+    
+    .auth-card a:hover {
+        color: #3b82f6;
+    }
+</style> 

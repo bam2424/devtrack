@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using DevTrack.Data;
+using DevTrack.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddControllers();
 
 // Configure Entity Framework with SQLite
 builder.Services.AddDbContext<DevTrackDbContext>(options =>
@@ -28,6 +30,42 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.SignIn.RequireConfirmedEmail = false;
 })
 .AddEntityFrameworkStores<DevTrackDbContext>();
+
+// Configure Google OAuth (only if credentials are provided)
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+var authBuilder = builder.Services.AddAuthentication();
+
+if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+{
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.SaveTokens = true;
+        
+        // Use the standard ASP.NET Core Identity callback path
+        options.CallbackPath = "/signin-google";
+        
+        // Request additional scopes for user info
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+        
+        // Configure events to log Google logins
+        options.Events.OnTicketReceived = async context =>
+        {
+            var serviceProvider = context.HttpContext.RequestServices;
+            var eventHandler = serviceProvider.GetRequiredService<GoogleLoginEventHandler>();
+            await eventHandler.HandleGoogleLoginAsync(context.Principal!, context.Properties ?? new Microsoft.AspNetCore.Authentication.AuthenticationProperties());
+        };
+    });
+}
+
+// Register services
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<GoogleLoginService>();
+builder.Services.AddScoped<GoogleLoginEventHandler>();
 
 var app = builder.Build();
 
@@ -50,6 +88,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

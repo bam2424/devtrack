@@ -1,0 +1,185 @@
+@page "/google-logins"
+@using DevTrack.Services
+@using DevTrack.Models
+@inject GoogleLoginService GoogleLoginService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
+<PageTitle>Google Login Logs - DevTrack</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-google text-danger me-2"></i>Google Login Logs</h2>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title">@stats.GetValueOrDefault("TotalLogins", 0)</h4>
+                                        <p class="card-text">Total Logins</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-sign-in-alt fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title">@stats.GetValueOrDefault("UniqueUsers", 0)</h4>
+                                        <p class="card-text">Unique Users</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-users fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title">@stats.GetValueOrDefault("TodayLogins", 0)</h4>
+                                        <p class="card-text">Today's Logins</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-calendar-day fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title">@stats.GetValueOrDefault("ThisWeekLogins", 0)</h4>
+                                        <p class="card-text">This Week</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-calendar-week fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Logs Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recent Google Logins</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (loginLogs.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Profile</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Login Time</th>
+                                            <th>IP Address</th>
+                                            <th>User Agent</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var log in loginLogs)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(log.ProfilePictureUrl))
+                                                    {
+                                                        <img src="@log.ProfilePictureUrl" alt="Profile" class="rounded-circle" style="width: 32px; height: 32px;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                            <i class="fas fa-user text-white"></i>
+                                                        </div>
+                                                    }
+                                                </td>
+                                                <td>@(log.Name ?? "N/A")</td>
+                                                <td>@log.Email</td>
+                                                <td>
+                                                    <span title="@log.LoginTime.ToString("yyyy-MM-dd HH:mm:ss UTC")">
+                                                        @log.LoginTime.ToString("MMM dd, yyyy HH:mm")
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">@(log.IpAddress ?? "N/A")</small>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted" title="@log.UserAgent">
+                                                        @(log.UserAgent?.Length > 50 ? log.UserAgent.Substring(0, 50) + "..." : log.UserAgent ?? "N/A")
+                                                    </small>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No Google logins recorded yet.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<GoogleLoginLog> loginLogs = new();
+    private Dictionary<string, int> stats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load login logs and statistics
+            loginLogs = await GoogleLoginService.GetRecentLoginsAsync(100);
+            stats = await GoogleLoginService.GetLoginStatsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error - in production, you'd want proper logging
+            Console.WriteLine($"Error loading Google login logs: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+} 

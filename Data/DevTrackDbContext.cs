@@ -13,6 +13,7 @@ public class DevTrackDbContext : IdentityDbContext
     public DbSet<Project> Projects { get; set; }
     public DbSet<DevTask> Tasks { get; set; }
     public DbSet<TimeLog> TimeLogs { get; set; }
+    public DbSet<GoogleLoginLog> GoogleLoginLogs { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +55,24 @@ public class DevTrackDbContext : IdentityDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Notes).HasMaxLength(500);
             entity.Property(e => e.UserId).IsRequired();
+        });
+        
+        // Configure GoogleLoginLog entity
+        modelBuilder.Entity<GoogleLoginLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).IsRequired();
+            entity.Property(e => e.GoogleId).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.ProfilePictureUrl).HasMaxLength(500);
+            entity.Property(e => e.IpAddress).HasMaxLength(45); // IPv6 max length
+            entity.Property(e => e.UserAgent).HasMaxLength(1000);
+            
+            // Index for faster queries
+            entity.HasIndex(e => e.GoogleId);
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.LoginTime);
         });
     }
 } 

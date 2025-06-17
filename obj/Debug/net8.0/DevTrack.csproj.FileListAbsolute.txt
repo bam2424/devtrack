@@ -241,11 +241,6 @@ C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\DevTrack.Razor
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\DevTrack.sourcelink.json
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets.development.json
-C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets\msbuild.DevTrack.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets\msbuild.build.DevTrack.props
-C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.DevTrack.props
-C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.DevTrack.props
-C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\scopedcss\Shared\MainLayout.razor.rz.scp.css
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\scopedcss\Shared\NavMenu.razor.rz.scp.css
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\scopedcss\bundle\DevTrack.styles.css
@@ -256,3 +251,11 @@ C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\refint\DevTrac
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\DevTrack.pdb
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\DevTrack.genruntimeconfig.cache
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\ref\DevTrack.dll
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\bin\Debug\net8.0\DevTrack.staticwebassets.endpoints.json
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets.build.endpoints.json

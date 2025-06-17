@@ -1,0 +1,128 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            @ChildContent
+        </Authorized>
+        <NotAuthorized>
+            @if (allowAnonymousAccess)
+            {
+                @ChildContent
+            }
+            else
+            {
+            <div class="auth-prompt-container">
+                <div class="auth-prompt-card">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-code fa-4x text-primary mb-3"></i>
+                        <h1 class="h2 fw-bold text-white mb-2">Welcome to DevTrack</h1>
+                        <p class="text-muted mb-4">Modern project management and time tracking</p>
+                    </div>
+                    
+                    <div class="d-grid gap-3">
+                        <form method="post" action="/Identity/Account/ExternalLogin">
+                            <input type="hidden" name="provider" value="Google" />
+                            <input type="hidden" name="returnUrl" value="/" />
+                            <button type="submit" class="btn btn-google btn-lg w-100">
+                                <i class="fab fa-google me-2"></i>
+                                Sign in with Google
+                            </button>
+                        </form>
+                        
+                        <div class="text-center">
+                            <span class="text-muted">or</span>
+                        </div>
+                        
+                        <button @onclick="ContinueWithoutAuth" 
+                                class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            Continue without Google
+                        </button>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            Already have an account? 
+                            <a href="/Identity/Account/Login" class="text-primary">Sign in here</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+            }
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    
+    private bool allowAnonymousAccess = false;
+    
+    private void ContinueWithoutAuth()
+    {
+        allowAnonymousAccess = true;
+        StateHasChanged();
+    }
+}
+
+<style>
+    .auth-prompt-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    
+    .auth-prompt-card {
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 1rem;
+        padding: 3rem;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .btn-google {
+        background: #4285f4;
+        border: none;
+        color: white;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-google:hover {
+        background: #3367d6;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    }
+    
+    .btn-outline-light {
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        color: #e2e8f0;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-outline-light:hover {
+        background: rgba(148, 163, 184, 0.1);
+        border-color: rgba(148, 163, 184, 0.5);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .text-primary {
+        color: #60a5fa !important;
+    }
+    
+    .text-primary:hover {
+        color: #3b82f6 !important;
+        text-decoration: none;
+    }
+</style> 

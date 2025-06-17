@@ -32,6 +32,8 @@ bld/
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite3
 
 # User-specific files
 *.rsuser
@@ -58,4 +60,21 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
-*.log 
+*.log
+
+# Security - Sensitive files
+appsettings.Production.json
+appsettings.Staging.json
+*.pfx
+*.p12
+*.key
+*.pem
+.env
+.env.*
+secrets.json
+userSecrets.json
+
+# IDE and editor files
+*.swp
+*.swo
+*~ 

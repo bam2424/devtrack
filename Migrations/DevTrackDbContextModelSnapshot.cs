@@ -69,6 +69,58 @@ namespace DevTrack.Migrations
                     b.ToTable("Tasks");
                 });
 
+            modelBuilder.Entity("DevTrack.Models.GoogleLoginLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GoogleId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LoginTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("GoogleId");
+
+                    b.HasIndex("LoginTime");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GoogleLoginLogs");
+                });
+
             modelBuilder.Entity("DevTrack.Models.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -343,6 +395,17 @@ namespace DevTrack.Migrations
                         .IsRequired();
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("DevTrack.Models.GoogleLoginLog", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DevTrack.Models.TimeLog", b =>
