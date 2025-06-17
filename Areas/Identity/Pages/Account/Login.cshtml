@@ -2,82 +2,180 @@
 @model LoginModel
 
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "Sign In";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
+<div class="text-center mb-4">
+    <h1 class="h3 fw-bold text-white mb-2">Welcome Back!</h1>
+    <p class="text-muted">Sign in to your DevTrack account</p>
+</div>
+
+<div class="auth-form-section">
+    <form id="account" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        
+        <div class="form-floating mb-3">
+            <input asp-for="Input.Email" class="form-control form-control-lg" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+            <label asp-for="Input.Email" class="form-label">
+                <i class="fas fa-envelope me-2"></i>Email Address
+            </label>
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
+        
+        <div class="form-floating mb-3">
+            <input asp-for="Input.Password" class="form-control form-control-lg" autocomplete="current-password" aria-required="true" placeholder="password" />
+            <label asp-for="Input.Password" class="form-label">
+                <i class="fas fa-lock me-2"></i>Password
+            </label>
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+        
+        <div class="form-check mb-4">
+            <input class="form-check-input" asp-for="Input.RememberMe" />
+            <label asp-for="Input.RememberMe" class="form-check-label text-muted">
+                Remember me
+            </label>
+        </div>
+        
+        <button id="login-submit" type="submit" class="btn btn-primary btn-lg w-100 mb-4">
+            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+        </button>
+        
+        <div class="auth-links mb-4">
+            <div class="text-center">
+                <a id="forgot-password" asp-page="./ForgotPassword" class="text-primary">Forgot your password?</a>
+            </div>
+        </div>
+    </form>
+    
+    @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+    {
+        <div class="external-login-section">
+            <div class="divider-with-text mb-4">
+                <span class="text-muted">or continue with</span>
+            </div>
+            
+            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                @foreach (var provider in Model.ExternalLogins!)
+                {
+                    <button type="submit" class="btn btn-google btn-lg w-100 mb-3" name="provider" value="@provider.Name" title="Sign in using your @provider.DisplayName account">
+                        <i class="fab fa-google me-2"></i>Continue with @provider.DisplayName
+                    </button>
+                }
             </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
+        </div>
+    }
+    
+    <div class="text-center mt-4">
+        <small class="text-muted">
+            Don't have an account? 
+            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-primary">Create one here</a>
+        </small>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+
+<style>
+    .auth-form-section .form-control {
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .auth-form-section .form-control:focus {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+    }
+    
+    .auth-form-section .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        padding: 0.875rem 1.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .auth-form-section .btn-primary:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-google {
+        background: #4285f4;
+        border: none;
+        color: white;
+        font-weight: 500;
+        border-radius: 0.75rem;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-google:hover {
+        background: #3367d6;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    }
+    
+    .divider-with-text {
+        position: relative;
+        text-align: center;
+    }
+    
+    .divider-with-text::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: rgba(148, 163, 184, 0.2);
+        z-index: 1;
+    }
+    
+    .divider-with-text span {
+        background: rgba(30, 41, 59, 0.8);
+        padding: 0 1rem;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .form-floating > label {
+        color: #94a3b8;
+        font-weight: 500;
+    }
+    
+    .form-check-label {
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-radius: 0.75rem;
+    }
+    
+    .text-primary {
+        color: #60a5fa !important;
+        text-decoration: none;
+    }
+    
+    .text-primary:hover {
+        color: #3b82f6 !important;
+        text-decoration: underline;
+    }
+    
+    .auth-links {
+        border-top: 1px solid rgba(148, 163, 184, 0.1);
+        padding-top: 1rem;
+    }
+</style>
