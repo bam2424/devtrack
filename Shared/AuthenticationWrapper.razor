@@ -64,7 +64,8 @@
     
     private bool allowAnonymousAccess = false;
     private string ReturnUrl => "/";
-    private string RequestVerificationToken => "";
+    private string requestVerificationToken = "";
+    private string RequestVerificationToken => requestVerificationToken;
     
     protected override void OnInitialized()
     {
@@ -74,7 +75,7 @@
             if (httpContext != null)
             {
                 var tokens = Antiforgery.GetAndStoreTokens(httpContext);
-                RequestVerificationToken = tokens.RequestToken ?? "";
+                requestVerificationToken = tokens.RequestToken ?? "";
             }
         }
         catch

@@ -638,7 +638,7 @@ else
         totalHours = filteredTimeLogs.Sum(tl => (double)tl.DurationMinutes / 60);
     }
 
-    private async Task OnPeriodChanged(ChangeEventArgs e)
+    private void OnPeriodChanged(ChangeEventArgs e)
     {
         selectedPeriod = e.Value?.ToString() ?? "week";
         FilterTimeLogsByPeriod();
