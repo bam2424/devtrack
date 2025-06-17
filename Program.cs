@@ -73,6 +73,13 @@ builder.Services.AddScoped<GoogleLoginEventHandler>();
 
 var app = builder.Build();
 
+// Ensure database is created and migrated
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<DevTrackDbContext>();
+    context.Database.EnsureCreated();
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

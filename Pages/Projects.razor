@@ -3,6 +3,8 @@
 @using DevTrack.Data
 @using DevTrack.Models
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @inject DevTrackDbContext DbContext
 @inject IJSRuntime JSRuntime
 @inject UserManager<IdentityUser> UserManager
@@ -239,10 +241,26 @@ else
 
     private async Task LoadProjects()
     {
-        projects = await DbContext.Projects
-            .Include(p => p.Tasks)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
+        try
+        {
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                projects = await DbContext.Projects
+                    .Where(p => p.UserId == currentUserId)
+                    .Include(p => p.Tasks)
+                    .OrderByDescending(p => p.CreatedAt)
+                    .ToListAsync();
+            }
+            else
+            {
+                projects = new List<Project>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading projects: {ex.Message}");
+            projects = new List<Project>();
+        }
     }
 
     private async Task ShowCreateModal()
