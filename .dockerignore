@@ -1,0 +1,15 @@
+bin/
+obj/
+.git/
+.vs/
+.vscode/
+*.db
+*.db-shm
+*.db-wal
+node_modules/
+.env
+.env.*
+README.md
+.gitignore
+Dockerfile
+.dockerignore 
