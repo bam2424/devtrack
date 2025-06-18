@@ -1,51 +1,58 @@
 @page
-@model IndexModel
+@model EmailModel
 @{
-    ViewData["Title"] = "Profile";
-    ViewData["ActivePage"] = ManageNavPages.Index;
+    ViewData["Title"] = "Manage Email";
+    ViewData["ActivePage"] = ManageNavPages.Email;
 }
 
 <div class="profile-container">
     <div class="profile-header">
         <div class="profile-icon">
-            <i class="fas fa-user"></i>
+            <i class="fas fa-envelope"></i>
         </div>
-        <h1 class="profile-title">Manage your account</h1>
-        <p class="profile-subtitle">Change your account settings</p>
+        <h1 class="profile-title">Manage Email</h1>
+        <p class="profile-subtitle">Change your email address and confirmation settings</p>
     </div>
 
     <div class="profile-content">
         <partial name="_StatusMessage" for="StatusMessage" />
         
-        <form id="profile-form" method="post" class="profile-form">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <form id="email-form" method="post" class="profile-form">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
             
             <div class="form-group">
-                <label asp-for="Username" class="form-label">
-                    <i class="fas fa-user me-2"></i>Username
+                <label asp-for="Email" class="form-label">
+                    <i class="fas fa-envelope me-2"></i>Current Email
                 </label>
-                <input asp-for="Username" class="form-control" disabled />
+                <input asp-for="Email" class="form-control" disabled />
+                @if (Model.IsEmailConfirmed)
+                {
+                    <div class="form-text text-success mt-2">
+                        <i class="fas fa-check-circle me-1"></i> Email confirmed
+                    </div>
+                }
+                else
+                {
+                    <div class="form-text text-warning mt-2">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Email not confirmed
+                    </div>
+                    <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-outline-primary mt-2">
+                        Send verification email
+                    </button>
+                }
             </div>
             
             <div class="form-group">
-                <label asp-for="Input.Email" class="form-label">
-                    <i class="fas fa-envelope me-2"></i>Email
+                <label asp-for="Input.NewEmail" class="form-label">
+                    <i class="fas fa-at me-2"></i>New Email Address
                 </label>
-                <input asp-for="Input.Email" class="form-control" />
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            
-            <div class="form-group">
-                <label asp-for="Input.PhoneNumber" class="form-label">
-                    <i class="fas fa-phone me-2"></i>Phone number
-                </label>
-                <input asp-for="Input.PhoneNumber" class="form-control" />
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" />
+                <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
             </div>
             
             <div class="form-actions">
-                <button id="update-profile-button" type="submit" class="btn btn-primary">
-                    <i class="fas fa-save me-2"></i>Save
+                <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Change Email
                 </button>
             </div>
         </form>
@@ -174,6 +181,35 @@
         background: linear-gradient(135deg, #5b57f4 0%, #4338ca 100%);
         transform: translateY(-2px);
         box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+    }
+    
+    .btn-outline-primary {
+        background: transparent;
+        border: 1.5px solid #6366f1;
+        color: #6366f1;
+        border-radius: 0.75rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary:hover {
+        background: #6366f1;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    
+    .text-success {
+        color: #10b981 !important;
+    }
+    
+    .text-warning {
+        color: #f59e0b !important;
     }
     
     .alert-danger {
