@@ -1,0 +1,129 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Profile";
+    ViewData["ActivePage"] = ManageNavPages.Index;
+}
+
+<div class="text-center mb-4">
+    <h1 class="h3 fw-bold text-white mb-2">Manage your account</h1>
+    <p class="text-muted">Change your account settings</p>
+</div>
+
+<div class="auth-form-section">
+    <partial name="_StatusMessage" for="StatusMessage" />
+    <form id="profile-form" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        
+        <div class="mb-3">
+            <label asp-for="Username" class="form-label">
+                <i class="fas fa-user me-2"></i>Username
+            </label>
+            <input asp-for="Username" class="form-control form-control-lg" disabled />
+        </div>
+        
+        <div class="mb-3">
+            <label asp-for="Input.Email" class="form-label">
+                <i class="fas fa-envelope me-2"></i>Email
+            </label>
+            <input asp-for="Input.Email" class="form-control form-control-lg" />
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
+        
+        <div class="mb-3">
+            <label asp-for="Input.PhoneNumber" class="form-label">
+                <i class="fas fa-phone me-2"></i>Phone number
+            </label>
+            <input asp-for="Input.PhoneNumber" class="form-control form-control-lg" />
+            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+        </div>
+        
+        <button id="update-profile-button" type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+            <i class="fas fa-save me-2"></i>Save
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+    /* Force dark mode for entire page */
+    html, body {
+        background-color: #0f172a !important;
+        color: #f1f5f9 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Override any Bootstrap white backgrounds */
+    .container, .container-fluid, .row, .col, div {
+        background-color: transparent !important;
+    }
+    
+    .auth-form-section .form-control {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        color: #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .auth-form-section .form-control:focus {
+        background: rgba(15, 23, 42, 0.9);
+        border-color: #60a5fa;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(96, 165, 250, 0.25);
+        color: #f1f5f9;
+    }
+    
+    .auth-form-section .form-control:disabled {
+        background: rgba(15, 23, 42, 0.4);
+        border-color: rgba(148, 163, 184, 0.2);
+        color: #94a3b8;
+        opacity: 0.7;
+    }
+    
+    .auth-form-section .btn-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border: none;
+        border-radius: 1rem;
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+    
+    .auth-form-section .btn-primary:hover {
+        background: linear-gradient(135deg, #5b57f4 0%, #4338ca 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+    }
+    
+    .form-label {
+        color: #cbd5e1;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        border-radius: 1rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .text-white {
+        color: #f1f5f9 !important;
+    }
+    
+    .text-muted {
+        color: #94a3b8 !important;
+    }
+</style> 
