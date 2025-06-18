@@ -53,6 +53,19 @@
 }
 
 <style>
+    /* Force dark mode for entire page */
+    html, body {
+        background-color: #0f172a !important;
+        color: #f1f5f9 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Override any Bootstrap white backgrounds */
+    .container, .container-fluid, .row, .col, div {
+        background-color: transparent !important;
+    }
+    
     /* Dark mode enhanced styles for Google OAuth page */
     .auth-success-icon {
         animation: successPulse 2s ease-in-out infinite;
