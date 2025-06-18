@@ -2,13 +2,26 @@
 @inherits LayoutComponentBase
 @inject IAntiforgery Antiforgery
 @inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JSRuntime
 
 <PageTitle>DevTrack</PageTitle>
 
 <div class="d-flex vh-100">
+    <!-- Mobile Header -->
+    <div class="mobile-header d-lg-none">
+        <div class="d-flex align-items-center justify-content-between p-3">
+            <h4 class="mb-0 fw-bold text-accent">
+                <i class="fas fa-code me-2"></i>DevTrack
+            </h4>
+            <button class="mobile-menu-toggle btn btn-outline-primary" @onclick="ToggleMobileMenu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Sidebar -->
-    <nav class="sidebar">
-        <div class="sidebar-header">
+    <nav class="sidebar @(showMobileMenu ? "show" : "")">
+        <div class="sidebar-header d-none d-lg-block">
             <div class="d-flex align-items-center">
                 <h4 class="mb-0 fw-bold text-accent">
                     <i class="fas fa-code me-2"></i>DevTrack
@@ -16,8 +29,15 @@
             </div>
         </div>
         
+        <!-- Mobile close button -->
+        <div class="mobile-close d-lg-none">
+            <button class="btn btn-outline-light" @onclick="CloseMobileMenu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
         <div class="flex-grow-1 p-3">
-            <NavMenu />
+            <NavMenu @ref="navMenuRef" />
         </div>
         
         <div class="sidebar-footer">
@@ -27,6 +47,9 @@
             </div>
         </div>
     </nav>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay @(showMobileMenu ? "show" : "")" @onclick="CloseMobileMenu"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -46,6 +69,9 @@
 </form>
 
 @code {
+    private bool showMobileMenu = false;
+    private NavMenu? navMenuRef;
+
     private string GetAntiForgeryToken()
     {
         try
@@ -62,5 +88,23 @@
             // Fallback
         }
         return "";
+    }
+
+    private void ToggleMobileMenu()
+    {
+        showMobileMenu = !showMobileMenu;
+    }
+
+    private void CloseMobileMenu()
+    {
+        showMobileMenu = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeMobileNavigation");
+        }
     }
 }

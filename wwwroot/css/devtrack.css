@@ -577,7 +577,95 @@ small {
     opacity: 0.5;
 }
 
+/* Mobile Navigation */
+.mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 999;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-menu-toggle {
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--accent-primary);
+    transform: scale(1.1);
+}
+
+.mobile-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1001;
+}
+
+.mobile-close .btn {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.mobile-close .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.mobile-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
 /* Responsive Design */
+@media (max-width: 991.98px) {
+    .main-content {
+        margin-left: 0;
+        padding-top: 80px; /* Account for mobile header */
+    }
+    
+    .sidebar {
+        width: 280px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: -280px;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border-color);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .sidebar.show {
+        left: 0;
+    }
+}
+
 @media (max-width: 768px) {
     .card-body {
         padding: 1rem;
@@ -587,22 +675,12 @@ small {
         margin-bottom: 1rem;
     }
     
-    .sidebar {
-        width: 100%;
-        min-height: auto;
-        position: fixed;
-        top: 0;
-        left: -100%;
-        z-index: 1000;
-        transition: left 0.3s ease;
-    }
-    
-    .sidebar.show {
-        left: 0;
-    }
-    
     .main-content {
-        margin-left: 0;
+        padding: 80px 0.5rem 0.5rem 0.5rem;
+    }
+    
+    .container-fluid {
+        padding: 0.5rem;
     }
 }
 
