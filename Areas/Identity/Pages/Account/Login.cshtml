@@ -14,19 +14,19 @@
     <form id="account" method="post">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
         
-        <div class="form-floating mb-3">
-            <input asp-for="Input.Email" class="form-control form-control-lg" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+        <div class="mb-3">
             <label asp-for="Input.Email" class="form-label">
                 <i class="fas fa-envelope me-2"></i>Email Address
             </label>
+            <input asp-for="Input.Email" class="form-control form-control-lg" autocomplete="username" aria-required="true" />
             <span asp-validation-for="Input.Email" class="text-danger"></span>
         </div>
         
-        <div class="form-floating mb-3">
-            <input asp-for="Input.Password" class="form-control form-control-lg" autocomplete="current-password" aria-required="true" placeholder="password" />
+        <div class="mb-3">
             <label asp-for="Input.Password" class="form-label">
                 <i class="fas fa-lock me-2"></i>Password
             </label>
+            <input asp-for="Input.Password" class="form-control form-control-lg" autocomplete="current-password" aria-required="true" />
             <span asp-validation-for="Input.Password" class="text-danger"></span>
         </div>
         
@@ -172,9 +172,11 @@
         z-index: 2;
     }
     
-    .form-floating > label {
-        color: #94a3b8;
+    .form-label {
+        color: #cbd5e1;
         font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
     }
     
     .form-check-label {
