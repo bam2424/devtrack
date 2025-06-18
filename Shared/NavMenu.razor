@@ -112,16 +112,20 @@
     private async Task OnNavLinkClick()
     {
         // Close mobile menu when navigation link is clicked
-        await JSRuntime.InvokeVoidAsync("closeMobileMenu");
+        await OnMobileNavClick.InvokeAsync();
     }
 
     private async Task Logout()
     {
-        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('logoutForm').submit()");
-    }
-
-    public async Task CloseMobileMenu()
-    {
-        await OnMobileNavClick.InvokeAsync();
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('logoutForm').submit()");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Logout error: {ex.Message}");
+            // Fallback: navigate to logout directly
+            Navigation.NavigateTo("/Identity/Account/Logout", forceLoad: true);
+        }
     }
 }

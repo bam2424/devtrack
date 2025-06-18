@@ -1,84 +1,37 @@
-// DevTrack Mobile Navigation
-let mobileMenuOpen = false;
+// DevTrack Site JavaScript
+console.log('DevTrack site.js loaded');
 
-// Initialize mobile navigation
-function initializeMobileNavigation() {
-    // Handle escape key to close mobile menu
+// Basic mobile menu support (backup for cases where Blazor fails)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+    
+    // Handle escape key globally
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && mobileMenuOpen) {
-            closeMobileMenu();
+        if (e.key === 'Escape') {
+            const sidebar = document.querySelector('.sidebar.show');
+            const overlay = document.querySelector('.mobile-overlay.show');
+            
+            if (sidebar) {
+                sidebar.classList.remove('show');
+            }
+            if (overlay) {
+                overlay.classList.remove('show');
+            }
         }
     });
-
-    // Handle window resize
+    
+    // Handle window resize to close mobile menu on desktop
     window.addEventListener('resize', function() {
         if (window.innerWidth >= 992) {
-            closeMobileMenu();
-        }
-    });
-}
-
-// Close mobile menu
-function closeMobileMenu() {
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.querySelector('.mobile-overlay');
-    
-    if (sidebar) {
-        sidebar.classList.remove('show');
-    }
-    if (overlay) {
-        overlay.classList.remove('show');
-    }
-    
-    mobileMenuOpen = false;
-    
-    // Trigger Blazor component update
-    if (window.DotNet) {
-        DotNet.invokeMethodAsync('DevTrack', 'CloseMobileMenu');
-    }
-}
-
-// Toggle mobile menu
-function toggleMobileMenu() {
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.querySelector('.mobile-overlay');
-    
-    if (sidebar && overlay) {
-        const isShowing = sidebar.classList.contains('show');
-        
-        if (isShowing) {
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
-            mobileMenuOpen = false;
-        } else {
-            sidebar.classList.add('show');
-            overlay.classList.add('show');
-            mobileMenuOpen = true;
-        }
-    }
-}
-
-// Auto-close menu when clicking nav links on mobile
-document.addEventListener('DOMContentLoaded', function() {
-    const navLinks = document.querySelectorAll('.nav-menu .nav-link');
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth < 992 && mobileMenuOpen) {
-                setTimeout(closeMobileMenu, 150); // Small delay for better UX
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            
+            if (sidebar) {
+                sidebar.classList.remove('show');
             }
-        });
+            if (overlay) {
+                overlay.classList.remove('show');
+            }
+        }
     });
-});
-
-// Prevent body scroll when mobile menu is open
-function preventBodyScroll() {
-    if (mobileMenuOpen) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = '';
-    }
-}
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', initializeMobileNavigation); 
+}); 

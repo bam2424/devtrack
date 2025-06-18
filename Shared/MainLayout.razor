@@ -37,7 +37,7 @@
         </div>
         
         <div class="flex-grow-1 p-3">
-            <NavMenu @ref="navMenuRef" />
+            <NavMenu OnMobileNavClick="CloseMobileMenu" />
         </div>
         
         <div class="sidebar-footer">
@@ -70,7 +70,6 @@
 
 @code {
     private bool showMobileMenu = false;
-    private NavMenu? navMenuRef;
 
     private string GetAntiForgeryToken()
     {
@@ -93,11 +92,13 @@
     private void ToggleMobileMenu()
     {
         showMobileMenu = !showMobileMenu;
+        StateHasChanged();
     }
 
     private void CloseMobileMenu()
     {
         showMobileMenu = false;
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
