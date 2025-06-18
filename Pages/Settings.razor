@@ -3,6 +3,7 @@
 @inject IJSRuntime JSRuntime
 @inject UserManager<IdentityUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
 <PageTitle>Settings - DevTrack</PageTitle>
 
@@ -198,7 +199,7 @@
         justify-content: center;
     }
     
-    @media (max-width: 575.98px) {
+    @@media (max-width: 575.98px) {
         .d-flex.flex-column.flex-sm-row .btn {
             width: 100%;
             margin-bottom: 0;
