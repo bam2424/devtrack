@@ -590,17 +590,23 @@ small {
 }
 
 .mobile-menu-toggle {
-    border: none;
-    background: transparent;
-    color: var(--text-primary);
-    font-size: 1.25rem;
-    padding: 0.5rem;
-    transition: all 0.3s ease;
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    font-size: 1.25rem !important;
+    padding: 0.5rem !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
 }
 
 .mobile-menu-toggle:hover {
-    background: var(--accent-primary);
-    transform: scale(1.1);
+    background: var(--accent-primary) !important;
+    transform: scale(1.1) !important;
+}
+
+.mobile-menu-toggle:focus {
+    outline: 2px solid var(--accent-primary) !important;
+    background: var(--accent-primary) !important;
 }
 
 .mobile-close {
@@ -644,25 +650,27 @@ small {
 /* Responsive Design */
 @media (max-width: 991.98px) {
     .main-content {
-        margin-left: 0;
-        padding-top: 80px; /* Account for mobile header */
+        margin-left: 0 !important;
+        padding-top: 80px !important; /* Account for mobile header */
     }
     
     .sidebar {
-        width: 280px;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: -280px;
-        z-index: 1000;
-        transition: left 0.3s ease;
-        background: var(--bg-secondary);
-        border-right: 1px solid var(--border-color);
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+        width: 280px !important;
+        height: 100vh !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: -280px !important;
+        z-index: 1000 !important;
+        transition: left 0.3s ease !important;
+        background: var(--bg-secondary) !important;
+        border-right: 1px solid var(--border-color) !important;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3) !important;
+        min-height: 100vh !important;
     }
     
-    .sidebar.show {
-        left: 0;
+    .sidebar.mobile-open {
+        left: 0 !important;
+        transform: translateX(0) !important;
     }
 }
 

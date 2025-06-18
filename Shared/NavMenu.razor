@@ -6,35 +6,35 @@
 
 <nav class="nav-menu">
     <div class="nav-item">
-        <NavLink class="nav-link" href="" Match="NavLinkMatch.All" @onclick="OnNavLinkClick">
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All" onclick="closeMobileNav()">
             <i class="fas fa-tachometer-alt"></i>
             <span>Dashboard</span>
         </NavLink>
     </div>
     
     <div class="nav-item">
-        <NavLink class="nav-link" href="projects" @onclick="OnNavLinkClick">
+        <NavLink class="nav-link" href="projects" onclick="closeMobileNav()">
             <i class="fas fa-folder"></i>
             <span>Projects</span>
         </NavLink>
     </div>
     
     <div class="nav-item">
-        <NavLink class="nav-link" href="tasks" @onclick="OnNavLinkClick">
+        <NavLink class="nav-link" href="tasks" onclick="closeMobileNav()">
             <i class="fas fa-tasks"></i>
             <span>Tasks</span>
         </NavLink>
     </div>
     
     <div class="nav-item">
-        <NavLink class="nav-link" href="timer" @onclick="OnNavLinkClick">
+        <NavLink class="nav-link" href="timer" onclick="closeMobileNav()">
             <i class="fas fa-clock"></i>
             <span>Time Tracking</span>
         </NavLink>
     </div>
     
     <div class="nav-item">
-        <NavLink class="nav-link" href="analytics" @onclick="OnNavLinkClick">
+        <NavLink class="nav-link" href="analytics" onclick="closeMobileNav()">
             <i class="fas fa-chart-bar"></i>
             <span>Analytics</span>
         </NavLink>
@@ -45,7 +45,7 @@
     @if (isAdmin)
     {
         <div class="nav-item">
-            <NavLink class="nav-link" href="google-logins" @onclick="OnNavLinkClick">
+            <NavLink class="nav-link" href="google-logins" onclick="closeMobileNav()">
                 <i class="fas fa-google text-danger"></i>
                 <span>Google Logins</span>
             </NavLink>
@@ -53,7 +53,7 @@
     }
     
     <div class="nav-item">
-        <NavLink class="nav-link" href="settings" @onclick="OnNavLinkClick">
+        <NavLink class="nav-link" href="settings" onclick="closeMobileNav()">
             <i class="fas fa-cog"></i>
             <span>Settings</span>
         </NavLink>
@@ -78,8 +78,6 @@
     private const string ADMIN_EMAIL = "wildicehole@gmail.com";
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    [Parameter] public EventCallback OnMobileNavClick { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,12 +105,6 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
-    }
-
-    private async Task OnNavLinkClick()
-    {
-        // Close mobile menu when navigation link is clicked
-        await OnMobileNavClick.InvokeAsync();
     }
 
     private async Task Logout()
