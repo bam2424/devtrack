@@ -375,11 +375,14 @@ else
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             var user = await UserManager.GetUserAsync(authState.User);
-            currentUserId = user?.Id ?? "default-user";
+            currentUserId = user?.Id;
         }
-        else
+        
+        // Redirect to login if user is not authenticated
+        if (string.IsNullOrEmpty(currentUserId))
         {
-            currentUserId = "default-user";
+            Navigation.NavigateTo("/Identity/Account/Login");
+            return;
         }
     }
 
@@ -394,7 +397,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading projects: {ex.Message}");
+            // Handle project loading error
             projects = new List<Project>();
         }
     }
@@ -480,7 +483,7 @@ else
             else
             {
                 taskForm.ProjectId = ProjectId;
-                taskForm.UserId = currentUserId ?? "default-user";
+                taskForm.UserId = currentUserId!;
                 taskForm.CreatedAt = DateTime.UtcNow;
                 taskForm.UpdatedAt = DateTime.UtcNow;
                 taskForm.IsCompleted = taskForm.Status == TaskStatus.Done;
@@ -501,7 +504,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving task: {ex.Message}");
+            // Handle task save error
         }
     }
     

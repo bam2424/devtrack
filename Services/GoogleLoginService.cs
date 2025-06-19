@@ -25,12 +25,8 @@ namespace DevTrack.Services
                 var name = user.FindFirst(ClaimTypes.Name)?.Value;
                 var picture = user.FindFirst("picture")?.Value;
 
-                // Enhanced logging for debugging
-                Console.WriteLine($"[GoogleLoginService] Logging Google login for email: {email}, UserId: {userId}");
-
                 if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
                 {
-                    Console.WriteLine($"[GoogleLoginService] Missing required data - GoogleId: {googleId}, Email: {email}");
                     return;
                 }
 
@@ -53,13 +49,11 @@ namespace DevTrack.Services
 
                 _context.GoogleLoginLogs.Add(loginLog);
                 await _context.SaveChangesAsync();
-                
-                Console.WriteLine($"[GoogleLoginService] Successfully logged Google login for {email}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[GoogleLoginService] Error logging Google login: {ex.Message}");
-                Console.WriteLine($"[GoogleLoginService] Stack trace: {ex.StackTrace}");
+                // Log error without exposing details in production
+                // In production, use proper logging framework like Serilog
             }
         }
 

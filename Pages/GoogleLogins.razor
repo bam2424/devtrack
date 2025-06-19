@@ -5,6 +5,7 @@
 @inject GoogleLoginService GoogleLoginService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<IdentityUser> UserManager
+@inject IConfiguration Configuration
 @attribute [Authorize]
 
 <PageTitle>Google Login Logs - DevTrack</PageTitle>
@@ -218,7 +219,6 @@ else
     private bool isAuthorized = false;
     private List<GoogleLoginLog> loginLogs = new();
     private Dictionary<string, int> stats = new();
-    private const string ADMIN_EMAIL = "wildicehole@gmail.com";
 
     protected override async Task OnInitializedAsync()
     {
@@ -229,7 +229,8 @@ else
             if (authState.User.Identity?.IsAuthenticated == true)
             {
                 var user = await UserManager.GetUserAsync(authState.User);
-                if (user != null && user.Email?.ToLower() == ADMIN_EMAIL.ToLower())
+                var adminEmail = Configuration["AdminSettings:AdminEmail"];
+                if (user != null && !string.IsNullOrEmpty(adminEmail) && user.Email?.ToLower() == adminEmail.ToLower())
                 {
                     isAuthorized = true;
                     
@@ -237,19 +238,13 @@ else
                     loginLogs = await GoogleLoginService.GetRecentLoginsAsync(100);
                     stats = await GoogleLoginService.GetLoginStatsAsync();
                     
-                    // Debug logging
-                    Console.WriteLine($"[GoogleLogins] Loaded {loginLogs.Count} login logs");
-                    foreach (var log in loginLogs.Take(5))
-                    {
-                        Console.WriteLine($"[GoogleLogins] Log: {log.Email} at {log.LoginTime}");
-                    }
+                    // Login logs loaded successfully
                 }
             }
         }
         catch (Exception ex)
         {
-            // Handle error - in production, you'd want proper logging
-            Console.WriteLine($"Error loading Google login logs: {ex.Message}");
+            // Handle error - in production, use proper logging framework
         }
         finally
         {
@@ -268,16 +263,11 @@ else
             loginLogs = await GoogleLoginService.GetRecentLoginsAsync(100);
             stats = await GoogleLoginService.GetLoginStatsAsync();
             
-            // Debug logging
-            Console.WriteLine($"[GoogleLogins] Refreshed - Loaded {loginLogs.Count} login logs");
-            foreach (var log in loginLogs.Take(5))
-            {
-                Console.WriteLine($"[GoogleLogins] Log: {log.Email} at {log.LoginTime}");
-            }
+            // Data refreshed successfully
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error refreshing Google login logs: {ex.Message}");
+            // Handle refresh error
         }
         finally
         {

@@ -9,6 +9,7 @@
 @inject IJSRuntime JSRuntime
 @inject UserManager<IdentityUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
 <PageTitle>Projects - DevTrack</PageTitle>
 
@@ -236,6 +237,13 @@ else
             currentUserId = user?.Id;
         }
         
+        // Redirect to login if user is not authenticated
+        if (string.IsNullOrEmpty(currentUserId))
+        {
+            Navigation.NavigateTo("/Identity/Account/Login");
+            return;
+        }
+        
         await LoadProjects();
     }
 
@@ -267,7 +275,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading projects: {ex.Message}");
+            // Handle project loading error
             projects = new List<Project>();
         }
     }
@@ -295,27 +303,14 @@ else
 
     private async Task SaveProject()
     {
-        Console.WriteLine("SaveProject method called");
         try
         {
-            // Get current user if not already set
+            // Ensure user is still authenticated
             if (string.IsNullOrEmpty(currentUserId))
             {
-                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-                if (authState.User.Identity?.IsAuthenticated == true)
-                {
-                    var user = await UserManager.GetUserAsync(authState.User);
-                    currentUserId = user?.Id;
-                }
+                Navigation.NavigateTo("/Identity/Account/Login");
+                return;
             }
-            
-            // For now, use a default user ID if no authentication
-            if (string.IsNullOrEmpty(currentUserId))
-            {
-                currentUserId = "default-user";
-            }
-            
-            Console.WriteLine($"Project form - Title: {projectForm.Title}, Description: {projectForm.Description}");
 
             if (isEditMode)
             {
@@ -348,8 +343,6 @@ else
         catch (Exception ex)
         {
             // Handle error - could add notification system later
-            Console.WriteLine($"Error saving project: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
         }
     }
 

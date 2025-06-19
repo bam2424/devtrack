@@ -424,9 +424,12 @@ else
             var user = await UserManager.GetUserAsync(authState.User);
             currentUserId = user?.Id;
         }
-        else
+        
+        // Redirect to login if user is not authenticated
+        if (string.IsNullOrEmpty(currentUserId))
         {
-            currentUserId = "default-user";
+            Navigation.NavigateTo("/Identity/Account/Login");
+            return;
         }
         
         await LoadData();
@@ -477,7 +480,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading tasks: {ex.Message}");
+            // Handle task loading error
             tasks = new List<DevTask>();
             projects = new List<Project>();
         }
@@ -598,7 +601,7 @@ else
                 taskForm.CreatedAt = DateTime.UtcNow;
                 taskForm.UpdatedAt = DateTime.UtcNow;
                 taskForm.IsCompleted = taskForm.Status == DevTrack.Models.TaskStatus.Done;
-                taskForm.UserId = currentUserId ?? "default-user";
+                taskForm.UserId = currentUserId!;
                 
                 // Set project if we're in project-specific view
                 if (ProjectId.HasValue && taskForm.ProjectId == Guid.Empty)
@@ -623,7 +626,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving task: {ex.Message}");
+            // Handle task save error
         }
     }
 

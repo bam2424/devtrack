@@ -238,7 +238,6 @@ namespace DevTrack.Areas.Identity.Pages.Account
                 if (info.LoginProvider.ToLower() != "google") return;
 
                 var email = info.Principal.FindFirst(ClaimTypes.Email)?.Value;
-                Console.WriteLine($"[ExternalLogin] Attempting to log Google login for email: {email}");
                 
                 if (!string.IsNullOrEmpty(email))
                 {
@@ -246,14 +245,13 @@ namespace DevTrack.Areas.Identity.Pages.Account
                     var user = await _userManager.FindByEmailAsync(email);
                     var userId = user?.Id ?? "new-user"; // Log even if user doesn't exist yet
                     
-                    Console.WriteLine($"[ExternalLogin] User found: {user != null}, UserId: {userId}");
                     await _googleLoginService.LogGoogleLoginAsync(userId, info.Principal);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ExternalLogin] Error logging Google login: {ex.Message}");
-                Console.WriteLine($"[ExternalLogin] Stack trace: {ex.StackTrace}");
+                // Handle Google login logging error
+                // In production, use proper logging framework
             }
         }
     }

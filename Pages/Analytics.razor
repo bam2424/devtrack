@@ -9,6 +9,7 @@
 @inject IJSRuntime JSRuntime
 @inject UserManager<IdentityUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
 <PageTitle>Analytics - DevTrack</PageTitle>
 
@@ -418,11 +419,14 @@ else
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             var user = await UserManager.GetUserAsync(authState.User);
-            currentUserId = user?.Id ?? "default-user";
+            currentUserId = user?.Id;
         }
-        else
+        
+        // Redirect to login if user is not authenticated
+        if (string.IsNullOrEmpty(currentUserId))
         {
-            currentUserId = "default-user";
+            Navigation.NavigateTo("/Identity/Account/Login");
+            return;
         }
     }
 

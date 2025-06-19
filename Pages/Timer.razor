@@ -8,6 +8,7 @@
 @inject IJSRuntime JSRuntime
 @inject UserManager<IdentityUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 @implements IDisposable
 
 <PageTitle>Timer - DevTrack</PageTitle>
@@ -576,11 +577,14 @@ else
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             var user = await UserManager.GetUserAsync(authState.User);
-            currentUserId = user?.Id ?? "default-user";
+            currentUserId = user?.Id;
         }
-        else
+        
+        // Redirect to login if user is not authenticated
+        if (string.IsNullOrEmpty(currentUserId))
         {
-            currentUserId = "default-user";
+            Navigation.NavigateTo("/Identity/Account/Login");
+            return;
         }
     }
 
@@ -663,7 +667,7 @@ else
             var timeLog = new TimeLog
             {
                 TaskId = selectedTaskId,
-                UserId = currentUserId ?? "default-user",
+                UserId = currentUserId!,
                 StartTime = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
@@ -677,7 +681,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error starting timer: {ex.Message}");
+            // Handle timer start error
         }
     }
 
@@ -690,7 +694,7 @@ else
             var timeLog = new TimeLog
             {
                 TaskId = task.Id,
-                UserId = currentUserId ?? "default-user",
+                UserId = currentUserId!,
                 StartTime = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
@@ -703,7 +707,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error starting quick timer: {ex.Message}");
+            // Handle quick timer start error
         }
     }
 
@@ -723,7 +727,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error stopping timer: {ex.Message}");
+            // Handle timer stop error
         }
     }
 
@@ -775,7 +779,7 @@ else
                 var newLog = new TimeLog
                 {
                     TaskId = timeLogForm.TaskId,
-                    UserId = currentUserId ?? "default-user",
+                    UserId = currentUserId!,
                     StartTime = startDateTime,
                     EndTime = startDateTime.AddMinutes(timeLogForm.DurationMinutes),
                     DurationMinutes = timeLogForm.DurationMinutes,
@@ -791,7 +795,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving time log: {ex.Message}");
+            // Handle time log save error
         }
     }
 
@@ -805,7 +809,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error deleting time log: {ex.Message}");
+            // Handle time log delete error
         }
     }
 

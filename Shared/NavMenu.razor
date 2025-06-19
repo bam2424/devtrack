@@ -3,6 +3,7 @@
 @inject UserManager<IdentityUser> UserManager
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
 
 <nav class="nav-menu">
     <div class="nav-item">
@@ -75,7 +76,6 @@
 @code {
     private bool collapseNavMenu = true;
     private bool isAdmin = false;
-    private const string ADMIN_EMAIL = "wildicehole@gmail.com";
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
@@ -92,12 +92,13 @@
             if (authState.User.Identity?.IsAuthenticated == true)
             {
                 var user = await UserManager.GetUserAsync(authState.User);
-                isAdmin = user?.Email?.ToLower() == ADMIN_EMAIL.ToLower();
+                var adminEmail = Configuration["AdminSettings:AdminEmail"];
+                isAdmin = !string.IsNullOrEmpty(adminEmail) && user?.Email?.ToLower() == adminEmail.ToLower();
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error checking admin status: {ex.Message}");
+            // Log error but don't expose details in production
             isAdmin = false;
         }
     }
@@ -115,7 +116,6 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Logout error: {ex.Message}");
             // Fallback: navigate to logout directly
             Navigation.NavigateTo("/Identity/Account/Logout", forceLoad: true);
         }

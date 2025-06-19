@@ -115,7 +115,7 @@ namespace DevTrack.Controllers
             catch (Exception ex)
             {
                 // Log error but don't fail the login process
-                Console.WriteLine($"Error logging Google login: {ex.Message}");
+                // In production, use proper logging framework
             }
         }
     }

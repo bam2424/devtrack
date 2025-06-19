@@ -73,7 +73,7 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
 // Register services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GoogleLoginService>();
-builder.Services.AddScoped<GoogleLoginEventHandler>();
+
 
 var app = builder.Build();
 
