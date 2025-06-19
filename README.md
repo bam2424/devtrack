@@ -53,14 +53,7 @@ A beautiful, dark-themed project management application built with **Blazor Serv
 | ✅ **Analytics** | Fully Working | Charts and productivity insights |
 | ✅ **Search & Filter** | Fully Working | Advanced filtering by multiple criteria |
 | ✅ **Authentication** | Fully Working | Secure user accounts with data isolation |
-
-### Platform Support
-| Platform | Status |
-|----------|--------|
-| ✅ **Windows** | Fully Working |
-| ✅ **macOS** | Fully Working |
-| ✅ **Linux** | Fully Working |
-| ✅ **Web Browsers** | All Modern Browsers |
+| ✅ **OAuth Sign-in** | Fully Working | Ability to login with google account securely |
 
 ## 🛠️ For Developers
 
@@ -139,26 +132,6 @@ TimeLogs
 └── Notes (string) - Work description
 ```
 
-## 🎯 Development Roadmap
-
-### ✅ Completed Features
-- [x] Project CRUD operations with progress tracking
-- [x] Kanban board with visual task management
-- [x] Built-in timer with comprehensive time tracking
-- [x] Analytics dashboard with charts and insights
-- [x] Advanced search and filtering system
-- [x] Secure user authentication and data isolation
-- [x] Premium dark theme with modern UI
-- [x] Responsive design for all devices
-- [x] Project-based task filtering
-
-### 🚀 Future Enhancements
-- [ ] Drag-and-drop task reordering
-- [ ] Team collaboration features
-- [ ] File attachments for tasks
-- [ ] Email notifications and reminders
-- [ ] Advanced reporting and exports
-
 ## 🔐 Authentication & Google Sign-In
 
 ### Multiple Login Options
@@ -177,11 +150,6 @@ The Google OAuth integration provides users with a convenient single sign-on exp
 - **Secure Authentication** - Uses Google's OAuth 2.0 security standards
 - **Login Logging** - Tracks Google authentication events for analytics
 
-**Current Status:**
-- 🚧 **In Development** - Google OAuth integration is implemented but requires configuration
-- 🔧 **Environment Setup** - Requires Google Cloud Console OAuth credentials for full functionality
-- ✅ **Fallback Ready** - Email/password authentication works independently
-
 ### Security Implementation
 - OAuth credentials are environment-based (never stored in source code)
 - Conditional OAuth registration prevents startup errors when credentials are unavailable
@@ -193,12 +161,5 @@ The Google OAuth integration provides users with a convenient single sign-on exp
 
 **Brandon** - Full Stack Developer  
 🌐 Portfolio: [Coming Soon]  
-💼 LinkedIn: [Connect with me]  
 🐙 GitHub: [@bam2424](https://github.com/bam2424)
 
-## 🙏 Acknowledgments
-
-- Built with [Blazor Server](https://docs.microsoft.com/en-us/aspnet/core/blazor/) framework
-- Icons powered by [Font Awesome](https://fontawesome.com/)
-- Typography using [Inter Font](https://rsms.me/inter/)
-- Inspired by modern project management solutions

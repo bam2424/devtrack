@@ -8,6 +8,7 @@
 @inject IJSRuntime JSRuntime
 @inject UserManager<IdentityUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
 <PageTitle>Kanban Board - DevTrack</PageTitle>
 
@@ -16,7 +17,21 @@
         <h2 class="mb-1">Kanban Board</h2>
         <p class="text-muted">Visual task management</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 align-items-center">
+        <!-- Project Selection Dropdown -->
+        <div class="d-flex align-items-center gap-2">
+            <label class="text-muted small">Project:</label>
+            <select @bind="selectedProjectId" @bind:after="OnProjectChanged" class="form-select" style="min-width: 200px;">
+                @if (projects != null)
+                {
+                    @foreach (var project in projects)
+                    {
+                        <option value="@project.Id" selected="@(project.Id == ProjectId)">@project.Title</option>
+                    }
+                }
+            </select>
+        </div>
+        
         <a href="/projects" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Back
         </a>
@@ -195,20 +210,20 @@ else
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Status</label>
-                                <InputSelect @bind-Value="taskForm.Status" class="form-select">
-                                    <option value="0">To Do</option>
-                                    <option value="1">In Progress</option>
-                                    <option value="2">Done</option>
+                                <InputSelect @bind-Value="taskForm.Status" class="form-select" TValue="DevTrack.Models.TaskStatus">
+                                    <option value="@DevTrack.Models.TaskStatus.ToDo">To Do</option>
+                                    <option value="@DevTrack.Models.TaskStatus.InProgress">In Progress</option>
+                                    <option value="@DevTrack.Models.TaskStatus.Done">Done</option>
                                 </InputSelect>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Priority</label>
-                                <InputSelect @bind-Value="taskForm.Priority" class="form-select">
-                                    <option value="0">Low</option>
-                                    <option value="1">Medium</option>
-                                    <option value="2">High</option>
+                                <InputSelect @bind-Value="taskForm.Priority" class="form-select" TValue="TaskPriority">
+                                    <option value="@TaskPriority.Low">Low</option>
+                                    <option value="@TaskPriority.Medium">Medium</option>
+                                    <option value="@TaskPriority.High">High</option>
                                 </InputSelect>
                             </div>
                         </div>
@@ -326,13 +341,17 @@ else
     private List<DevTask> todoTasks = new();
     private List<DevTask> inProgressTasks = new();
     private List<DevTask> doneTasks = new();
+    private List<Project>? projects;
     
     private DevTask taskForm = new();
     private bool isEditMode = false;
+    private Guid selectedProjectId;
 
     protected override async Task OnInitializedAsync()
     {
         await GetCurrentUser();
+        selectedProjectId = ProjectId;
+        await LoadProjects();
         await LoadTasks();
         isLoading = false;
     }
@@ -348,6 +367,31 @@ else
         else
         {
             currentUserId = "default-user";
+        }
+    }
+
+    private async Task LoadProjects()
+    {
+        try
+        {
+            projects = await DbContext.Projects
+                .Where(p => p.UserId == currentUserId)
+                .OrderBy(p => p.Title)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading projects: {ex.Message}");
+            projects = new List<Project>();
+        }
+    }
+
+    private async Task OnProjectChanged()
+    {
+        if (selectedProjectId != ProjectId)
+        {
+            // Navigate to the new project's kanban board
+            Navigation.NavigateTo($"/projects/{selectedProjectId}/kanban");
         }
     }
 
@@ -371,7 +415,17 @@ else
     private async Task ShowCreateModal()
     {
         isEditMode = false;
-        taskForm = new DevTask { ProjectId = ProjectId, Status = TaskStatus.ToDo };
+        taskForm = new DevTask 
+        { 
+            ProjectId = ProjectId, 
+            Status = TaskStatus.ToDo,
+            Priority = TaskPriority.Medium
+        };
+        
+        // Force state update before showing modal
+        StateHasChanged();
+        await Task.Delay(50); // Small delay to ensure DOM is updated
+        
         await JSRuntime.InvokeVoidAsync("showModal", "#taskModal");
     }
 
@@ -424,7 +478,13 @@ else
             await LoadTasks();
             
             await JSRuntime.InvokeVoidAsync("hideModal", "#taskModal");
-            taskForm = new DevTask();
+            
+            // Reset form
+            taskForm = new DevTask
+            {
+                Status = TaskStatus.ToDo,
+                Priority = TaskPriority.Medium
+            };
         }
         catch (Exception ex)
         {
