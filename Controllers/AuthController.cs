@@ -50,13 +50,14 @@ namespace DevTrack.Controllers
                 return Redirect("/");
             }
 
+            // Always log the Google login attempt (regardless of success)
+            await LogGoogleLogin(info);
+
             // Sign in the user with this external login provider if the user already has a login
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
             
             if (result.Succeeded)
             {
-                // Log the successful Google login
-                await LogGoogleLogin(info);
                 return LocalRedirect(returnUrl);
             }
 
@@ -81,9 +82,6 @@ namespace DevTrack.Controllers
                     {
                         await _userManager.AddLoginAsync(user, info);
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        
-                        // Log the successful Google login
-                        await LogGoogleLogin(info);
                         return LocalRedirect(returnUrl);
                     }
                 }
@@ -91,9 +89,6 @@ namespace DevTrack.Controllers
                 {
                     await _userManager.AddLoginAsync(user, info);
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    
-                    // Log the successful Google login
-                    await LogGoogleLogin(info);
                     return LocalRedirect(returnUrl);
                 }
             }
@@ -110,11 +105,11 @@ namespace DevTrack.Controllers
                 
                 if (!string.IsNullOrEmpty(email))
                 {
+                    // Find existing user or use a temporary ID for logging
                     var user = await _userManager.FindByEmailAsync(email);
-                    if (user != null)
-                    {
-                        await _googleLoginService.LogGoogleLoginAsync(user.Id, info.Principal);
-                    }
+                    var userId = user?.Id ?? "unknown-user"; // Log even if user doesn't exist yet
+                    
+                    await _googleLoginService.LogGoogleLoginAsync(userId, info.Principal);
                 }
             }
             catch (Exception ex)

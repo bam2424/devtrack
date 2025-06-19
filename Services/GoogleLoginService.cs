@@ -18,33 +18,49 @@ namespace DevTrack.Services
 
         public async Task LogGoogleLoginAsync(string userId, ClaimsPrincipal user)
         {
-            var googleId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var email = user.FindFirst(ClaimTypes.Email)?.Value;
-            var name = user.FindFirst(ClaimTypes.Name)?.Value;
-            var picture = user.FindFirst("picture")?.Value;
-
-            if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
-                return;
-
-            var httpContext = _httpContextAccessor.HttpContext;
-            var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
-            var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
-
-            var loginLog = new GoogleLoginLog
+            try
             {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                GoogleId = googleId,
-                Email = email,
-                Name = name,
-                ProfilePictureUrl = picture,
-                LoginTime = DateTime.UtcNow,
-                IpAddress = ipAddress,
-                UserAgent = userAgent
-            };
+                var googleId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var email = user.FindFirst(ClaimTypes.Email)?.Value;
+                var name = user.FindFirst(ClaimTypes.Name)?.Value;
+                var picture = user.FindFirst("picture")?.Value;
 
-            _context.GoogleLoginLogs.Add(loginLog);
-            await _context.SaveChangesAsync();
+                // Enhanced logging for debugging
+                Console.WriteLine($"[GoogleLoginService] Logging Google login for email: {email}, UserId: {userId}");
+
+                if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
+                {
+                    Console.WriteLine($"[GoogleLoginService] Missing required data - GoogleId: {googleId}, Email: {email}");
+                    return;
+                }
+
+                var httpContext = _httpContextAccessor.HttpContext;
+                var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
+                var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
+
+                var loginLog = new GoogleLoginLog
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    GoogleId = googleId,
+                    Email = email,
+                    Name = name,
+                    ProfilePictureUrl = picture,
+                    LoginTime = DateTime.UtcNow,
+                    IpAddress = ipAddress,
+                    UserAgent = userAgent
+                };
+
+                _context.GoogleLoginLogs.Add(loginLog);
+                await _context.SaveChangesAsync();
+                
+                Console.WriteLine($"[GoogleLoginService] Successfully logged Google login for {email}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GoogleLoginService] Error logging Google login: {ex.Message}");
+                Console.WriteLine($"[GoogleLoginService] Stack trace: {ex.StackTrace}");
+            }
         }
 
         public async Task<List<GoogleLoginLog>> GetRecentLoginsAsync(int count = 50)

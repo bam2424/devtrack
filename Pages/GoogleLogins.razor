@@ -115,10 +115,36 @@ else
                     </div>
                 </div>
 
+                <!-- Debug Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Debug Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Total Records Found:</strong> @loginLogs.Count</p>
+                        <p><strong>Database Query:</strong> SELECT * FROM GoogleLoginLogs ORDER BY LoginTime DESC LIMIT 100</p>
+                        @if (loginLogs.Any())
+                        {
+                            <p><strong>Email Addresses Found:</strong></p>
+                            <ul>
+                                @foreach (var email in loginLogs.Select(l => l.Email).Distinct())
+                                {
+                                    <li>@email</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+
                 <!-- Login Logs Table -->
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Recent Google Logins</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Google Logins</h5>
+                            <button class="btn btn-sm btn-outline-info" @onclick="RefreshData">
+                                <i class="fas fa-refresh me-1"></i>Refresh
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
                         @if (loginLogs.Any())
@@ -210,6 +236,13 @@ else
                     // Load login logs and statistics only if authorized
                     loginLogs = await GoogleLoginService.GetRecentLoginsAsync(100);
                     stats = await GoogleLoginService.GetLoginStatsAsync();
+                    
+                    // Debug logging
+                    Console.WriteLine($"[GoogleLogins] Loaded {loginLogs.Count} login logs");
+                    foreach (var log in loginLogs.Take(5))
+                    {
+                        Console.WriteLine($"[GoogleLogins] Log: {log.Email} at {log.LoginTime}");
+                    }
                 }
             }
         }
@@ -221,6 +254,35 @@ else
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+            
+            // Reload login logs and statistics
+            loginLogs = await GoogleLoginService.GetRecentLoginsAsync(100);
+            stats = await GoogleLoginService.GetLoginStatsAsync();
+            
+            // Debug logging
+            Console.WriteLine($"[GoogleLogins] Refreshed - Loaded {loginLogs.Count} login logs");
+            foreach (var log in loginLogs.Take(5))
+            {
+                Console.WriteLine($"[GoogleLogins] Log: {log.Email} at {log.LoginTime}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error refreshing Google login logs: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
         }
     }
 } 

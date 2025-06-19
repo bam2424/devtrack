@@ -66,13 +66,7 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
         options.Scope.Add("profile");
         options.Scope.Add("email");
         
-        // Configure events to log Google logins
-        options.Events.OnTicketReceived = async context =>
-        {
-            var serviceProvider = context.HttpContext.RequestServices;
-            var eventHandler = serviceProvider.GetRequiredService<GoogleLoginEventHandler>();
-            await eventHandler.HandleGoogleLoginAsync(context.Principal!, context.Properties ?? new Microsoft.AspNetCore.Authentication.AuthenticationProperties());
-        };
+        // Google login logging is handled in AuthController
     });
 }
 
