@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using DevTrack.Services;
 
 namespace DevTrack.Areas.Identity.Pages.Account
 {
@@ -29,13 +30,15 @@ namespace DevTrack.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ExternalLoginModel> _logger;
+        private readonly GoogleLoginService _googleLoginService;
 
         public ExternalLoginModel(
             SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             ILogger<ExternalLoginModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            GoogleLoginService googleLoginService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -43,6 +46,7 @@ namespace DevTrack.Areas.Identity.Pages.Account
             _emailStore = GetEmailStore();
             _logger = logger;
             _emailSender = emailSender;
+            _googleLoginService = googleLoginService;
         }
 
         /// <summary>
@@ -110,6 +114,9 @@ namespace DevTrack.Areas.Identity.Pages.Account
                 ErrorMessage = "Error loading external login information.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
+
+            // Log Google login attempt (regardless of success)
+            await LogGoogleLogin(info);
 
             // Sign in the user with this external login provider if the user already has a login.
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
@@ -183,6 +190,10 @@ namespace DevTrack.Areas.Identity.Pages.Account
                         }
 
                         await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
+                        
+                        // Log the new user registration
+                        await LogGoogleLogin(info);
+                        
                         return LocalRedirect(returnUrl);
                     }
                 }
@@ -218,6 +229,32 @@ namespace DevTrack.Areas.Identity.Pages.Account
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
             return (IUserEmailStore<IdentityUser>)_userStore;
+        }
+
+        private async Task LogGoogleLogin(ExternalLoginInfo info)
+        {
+            try
+            {
+                if (info.LoginProvider.ToLower() != "google") return;
+
+                var email = info.Principal.FindFirst(ClaimTypes.Email)?.Value;
+                Console.WriteLine($"[ExternalLogin] Attempting to log Google login for email: {email}");
+                
+                if (!string.IsNullOrEmpty(email))
+                {
+                    // Find existing user or use a temporary ID for logging
+                    var user = await _userManager.FindByEmailAsync(email);
+                    var userId = user?.Id ?? "new-user"; // Log even if user doesn't exist yet
+                    
+                    Console.WriteLine($"[ExternalLogin] User found: {user != null}, UserId: {userId}");
+                    await _googleLoginService.LogGoogleLoginAsync(userId, info.Principal);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ExternalLogin] Error logging Google login: {ex.Message}");
+                Console.WriteLine($"[ExternalLogin] Stack trace: {ex.StackTrace}");
+            }
         }
     }
 }
