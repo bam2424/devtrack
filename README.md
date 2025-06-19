@@ -17,19 +17,19 @@ A beautiful, dark-themed project management application built with **Blazor Serv
 ## 🖼️ Screenshots
 
 ### Main Dashboard - Project Overview & Quick Actions
-![Dashboard Interface](https://via.placeholder.com/800x500/1e293b/64748b?text=Dashboard+Overview)  
+![Dashboard Interface](docs/images/Dashboard%20Interface.png)  
 *Clean dashboard featuring project cards with progress indicators, recent activity feed, and quick action buttons for creating projects and tasks.*
 
 ### Kanban Board - Visual Task Management
-![Kanban Board](https://via.placeholder.com/800x500/1e293b/64748b?text=Kanban+Board)  
+![Kanban Board](docs/images/Kanban%20Board.png)  
 *Intuitive Kanban interface with three-column layout (To Do, In Progress, Done), task cards showing priority levels, due dates, and tags with smooth status transitions.*
 
 ### Analytics Dashboard - Productivity Insights
-![Analytics Dashboard](https://via.placeholder.com/800x500/1e293b/64748b?text=Analytics+Dashboard)  
-*Comprehensive analytics featuring task distribution charts, priority breakdowns, time tracking summaries, and project progress visualization with interactive elements.*
+![Analytics Dashboard](docs/images/Analytics%20Dashboard.png)  
+*Comprehensive analytics featuring task distribution charts, priority breakdowns, time tracking summaries, and project progress visualization with interactive elements. (photo zoomed out to show whole page)*
 
 ### Time Tracking - Built-in Timer & History
-![Time Tracking](https://via.placeholder.com/800x500/1e293b/64748b?text=Time+Tracking)  
+![Time Tracking](docs/images/Time%20Tracking.png)  
 *Professional time tracking interface with active timer display, manual time logging, detailed history views, and productivity statistics.*
 
 ## 🚀 Getting Started
@@ -162,4 +162,3 @@ The Google OAuth integration provides users with a convenient single sign-on exp
 **Brandon** - Full Stack Developer  
 🌐 Portfolio: [Coming Soon]  
 🐙 GitHub: [@bam2424](https://github.com/bam2424)
-
