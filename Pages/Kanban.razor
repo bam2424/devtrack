@@ -356,6 +356,19 @@ else
         isLoading = false;
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        // This runs when route parameters change
+        if (selectedProjectId != ProjectId)
+        {
+            selectedProjectId = ProjectId;
+            isLoading = true;
+            await LoadTasks();
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
     private async Task GetCurrentUser()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -391,7 +404,7 @@ else
         if (selectedProjectId != ProjectId)
         {
             // Navigate to the new project's kanban board
-            Navigation.NavigateTo($"/projects/{selectedProjectId}/kanban");
+            Navigation.NavigateTo($"/projects/{selectedProjectId}/kanban", false);
         }
     }
 
