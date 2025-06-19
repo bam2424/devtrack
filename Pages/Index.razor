@@ -253,10 +253,12 @@
 
             // Load time logs
             var timeLogs = await DbContext.TimeLogs
-                .Where(tl => tl.Task.UserId == currentUserId)
+                .Where(tl => tl.Task.UserId == currentUserId && tl.EndTime != null)
                 .ToListAsync();
 
-            totalHours = timeLogs.Sum(tl => (tl.EndTime - tl.StartTime).TotalHours);
+            totalHours = timeLogs.Sum(tl => tl.EndTime.HasValue 
+                ? (tl.EndTime.Value - tl.StartTime).TotalHours 
+                : 0);
         }
         catch (Exception ex)
         {

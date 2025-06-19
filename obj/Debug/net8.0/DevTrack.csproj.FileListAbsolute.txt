@@ -259,3 +259,4 @@ C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\rjsmrazor.dswa
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\Brandon\Desktop\CursorProjects\DevTrack\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Users\Brandon\Desktop\CursorProjects\DevTrack\bin\Debug\net8.0\railway.json
