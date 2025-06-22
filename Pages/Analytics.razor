@@ -422,11 +422,10 @@ else
             currentUserId = user?.Id;
         }
         
-        // Redirect to login if user is not authenticated
+        // Allow anonymous access - use session-only data if not authenticated
         if (string.IsNullOrEmpty(currentUserId))
         {
-            Navigation.NavigateTo("/Identity/Account/Login");
-            return;
+            currentUserId = "anonymous-user";
         }
     }
 

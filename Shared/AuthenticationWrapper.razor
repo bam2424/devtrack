@@ -3,6 +3,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IAntiforgery Antiforgery
 @inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JSRuntime
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -39,7 +40,7 @@
                             <span class="text-muted">or</span>
                         </div>
                         
-                        <button @onclick="ContinueWithoutAuth" 
+                        <button @onclick="ShowContinueWarning" 
                                 class="btn btn-outline-light btn-lg">
                             <i class="fas fa-arrow-right me-2"></i>
                             Continue without Google
@@ -58,6 +59,46 @@
         </NotAuthorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
+
+<!-- Warning Modal -->
+<div class="modal fade" id="continueWarningModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Continue Without Signing In?
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">
+                    <strong>Important:</strong> If you continue without signing in, your data will not be saved permanently.
+                </p>
+                <p class="mb-3">
+                    You can still use all features of DevTrack, but:
+                </p>
+                <ul class="mb-3">
+                    <li>Your projects and tasks will only exist during this session</li>
+                    <li>Time tracking data will be lost when you close the browser</li>
+                    <li>You won't be able to access your data from other devices</li>
+                </ul>
+                <p class="text-muted">
+                    <small>You can sign in at any time from the Settings page to save your data.</small>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="GoToSignIn">
+                    <i class="fab fa-google me-2"></i>
+                    Sign In Instead
+                </button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="ContinueWithoutAuth">
+                    <i class="fas fa-check me-2"></i>
+                    Continue Anyway
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -84,10 +125,23 @@
         }
     }
     
-    private void ContinueWithoutAuth()
+    private async Task ShowContinueWarning()
     {
+        await JSRuntime.InvokeVoidAsync("showModal", "#continueWarningModal");
+    }
+    
+    private async Task ContinueWithoutAuth()
+    {
+        await JSRuntime.InvokeVoidAsync("hideModal", "#continueWarningModal");
         allowAnonymousAccess = true;
         StateHasChanged();
+    }
+    
+    private async Task GoToSignIn()
+    {
+        await JSRuntime.InvokeVoidAsync("hideModal", "#continueWarningModal");
+        // Trigger the Google sign-in form
+        await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('form[action=\"/Identity/Account/ExternalLogin\"]').submit()");
     }
 }
 

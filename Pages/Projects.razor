@@ -237,11 +237,10 @@ else
             currentUserId = user?.Id;
         }
         
-        // Redirect to login if user is not authenticated
+        // Allow anonymous access - use session-only data if not authenticated
         if (string.IsNullOrEmpty(currentUserId))
         {
-            Navigation.NavigateTo("/Identity/Account/Login");
-            return;
+            currentUserId = "anonymous-user";
         }
         
         await LoadProjects();
@@ -305,11 +304,10 @@ else
     {
         try
         {
-            // Ensure user is still authenticated
+            // Allow anonymous users to create projects (session-only)
             if (string.IsNullOrEmpty(currentUserId))
             {
-                Navigation.NavigateTo("/Identity/Account/Login");
-                return;
+                currentUserId = "anonymous-user";
             }
 
             if (isEditMode)
