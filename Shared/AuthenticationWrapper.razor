@@ -62,7 +62,7 @@
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     
-    private bool allowAnonymousAccess = false;
+    private bool allowAnonymousAccess = true;
     private string ReturnUrl => "/";
     private string requestVerificationToken = "";
     private string RequestVerificationToken => requestVerificationToken;
