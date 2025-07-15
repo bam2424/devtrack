@@ -160,5 +160,5 @@ The Google OAuth integration provides users with a convenient single sign-on exp
 ## 👨‍💻 Author
 
 **Brandon** - Full Stack Developer  
-🌐 Portfolio: https://brandonmattingly.vercel.app/ 
+🌐 Portfolio: https://brandonmattingly.vercel.app/           
 🐙 GitHub: [@bam2424](https://github.com/bam2424)
