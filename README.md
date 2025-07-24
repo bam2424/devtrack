@@ -1,20 +1,20 @@
-# 📊 DevTrack - Modern Project Management System
+# DevTrack - Modern Project Management System
 Full-stack task management with Kanban boards, time tracking, and analytics
 
 A beautiful, dark-themed project management application built with **Blazor Server** and **.NET 8** that enables seamless project organization, task tracking, and productivity monitoring across teams and individuals.
 
-## ✨ Features
+##  Features
 
-🎯 **Project Management**: Complete CRUD operations with descriptions, due dates, and progress tracking  
-📋 **Kanban Board**: Visual task management with To Do, In Progress, and Done columns  
-⏱️ **Time Tracking**: Built-in timer with manual logging and comprehensive history  
-📊 **Analytics Dashboard**: Visual insights into productivity and project progress  
-🔍 **Advanced Filtering**: Search by status, priority, tags, projects, and text content  
-🎨 **Modern Dark UI**: Beautiful, eye-friendly interface with premium dark theme  
-📱 **Responsive Design**: Seamless experience across desktop, tablet, and mobile  
-🔐 **Secure Authentication**: ASP.NET Core Identity with user data isolation  
+ **Project Management**: Complete CRUD operations with descriptions, due dates, and progress tracking  
+ **Kanban Board**: Visual task management with To Do, In Progress, and Done columns  
+ **Time Tracking**: Built-in timer with manual logging and comprehensive history  
+ **Analytics Dashboard**: Visual insights into productivity and project progress  
+ **Advanced Filtering**: Search by status, priority, tags, projects, and text content  
+ **Modern Dark UI**: Beautiful, eye-friendly interface with premium dark theme  
+ **Responsive Design**: Seamless experience across desktop, tablet, and mobile  
+ **Secure Authentication**: ASP.NET Core Identity with user data isolation  
 
-## 🖼️ Screenshots
+## Screenshots
 
 ### Main Dashboard - Project Overview & Quick Actions
 ![Dashboard Interface](docs/images/Dashboard%20Interface.png)  
@@ -132,7 +132,7 @@ TimeLogs
 └── Notes (string) - Work description
 ```
 
-## 🔐 Authentication & Google Sign-In
+##  Authentication & Google Sign-In
 
 ### Multiple Login Options
 DevTrack supports both traditional email/password authentication and Google OAuth integration for seamless user experience.
