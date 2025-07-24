@@ -55,7 +55,7 @@ A beautiful, dark-themed project management application built with **Blazor Serv
 | ✅ **Authentication** | Fully Working | Secure user accounts with data isolation |
 | ✅ **OAuth Sign-in** | Fully Working | Ability to login with google account securely |
 
-## 🛠️ For Developers
+## For Developers
 
 ### Requirements
 - **.NET 8 SDK** - Latest framework version
@@ -98,7 +98,7 @@ DevTrack/
 - **Font Awesome** - Professional icon library
 - **Custom CSS Variables** - Premium dark theme system
 
-## 💾 Database Schema
+## Database Schema
 
 ### Core Entities
 ```sql
